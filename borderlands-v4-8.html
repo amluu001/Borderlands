@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BORDERLANDS</title>
+<!-- Firebase — must load before page script -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#c0392b;--dimred:#5c1a12;
+  --cream:#ede3ce;--muted:#6b6050;--verydim:#2a2418;
+  --black:#060504;--dark:#0d0a06;--surface:#121008;--surface2:#181310;
+  --border:#1e1910;--border2:#2a2418;
+  --gold:#c49a3a;--dimgold:#4a3a18;
+  --teal:#1a9c7a;--dimteal:#0d5040;
+  --violet:#9b59b6;--dimviolet:#3d1f5a;
+  --queen:#c49a3a;--dimqueen:#4a3a10;
+  --king:#3a7bd5;--dimking:#1a2d5a;
+  --joker:#8e44ad;--dimjoker:#3d1058;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{background:var(--black);color:var(--cream);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);}
+#app{max-width:920px;margin:0 auto;padding:24px 14px 100px;}
+
+/* HEADER */
+.hdr{text-align:center;margin-bottom:32px;}
+.hdr-pre{font-size:8px;letter-spacing:.7em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.hdr-title{font-family:'Bebas Neue',cursive;font-size:clamp(50px,11vw,94px);line-height:.86;letter-spacing:.14em;}
+.hdr-title em{font-style:normal;}
+.hdr-title.tier-base em{color:var(--red);}
+.hdr-title.tier-queen em{color:var(--queen);}
+.hdr-title.tier-king em{color:var(--king);}
+.hdr-title.tier-joker em{color:var(--joker);}
+.hdr-suits{display:flex;justify-content:center;gap:12px;margin-top:10px;font-size:18px;}
+.hdr-suits span{opacity:.3;}
+.hdr-suits .r{color:var(--red);opacity:.7;}
+.room-tag{font-size:9px;letter-spacing:.5em;color:var(--muted);margin-top:6px;text-align:center;}
+.room-tag b{color:var(--gold);}
+
+/* TIER BANNER */
+.tier-banner{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:10px 20px;margin-bottom:14px;
+  font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:.2em;
+  border:1px solid;text-align:center;
+}
+.tier-banner.queen{border-color:var(--dimqueen);background:rgba(196,154,58,.06);color:var(--queen);}
+.tier-banner.king{border-color:var(--dimking);background:rgba(58,123,213,.06);color:var(--king);}
+.tier-banner.joker{border-color:var(--dimjoker);background:rgba(142,68,173,.08);color:var(--joker);animation:jpulse 2s infinite;}
+@keyframes jpulse{0%,100%{box-shadow:0 0 0 rgba(142,68,173,0)}50%{box-shadow:0 0 18px rgba(142,68,173,.3)}}
+
+/* LIVES */
+.lives-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 18px;background:var(--surface);border:1px solid var(--border2);
+  margin-bottom:12px;
+}
+.lives-label{font-size:8px;letter-spacing:.4em;color:var(--muted);text-transform:uppercase;margin-right:4px;}
+.life-card{
+  font-size:22px;transition:all .3s;
+  filter:drop-shadow(0 0 4px rgba(255,255,255,.1));
+}
+.life-card.alive-club{color:#7ccc8e;}
+.life-card.alive-diamond{color:#e74c3c;}
+.life-card.alive-heart{color:#e74c3c;}
+.life-card.alive-spade{color:#a0c4f8;}
+.life-card.lost{color:var(--verydim);filter:none;opacity:.25;text-decoration:line-through;}
+.life-card.losing{animation:loseLife .8s forwards;}
+@keyframes loseLife{
+  0%{transform:scale(1.4);filter:drop-shadow(0 0 12px #fff);}
+  40%{transform:scale(.6) rotate(15deg);opacity:.5;}
+  100%{transform:scale(1) rotate(0);opacity:.2;color:var(--verydim);}
+}
+.lives-count{margin-left:auto;font-family:'Bebas Neue',cursive;font-size:14px;color:var(--muted);}
+
+/* DEATH BOARD */
+.death-board{background:var(--surface);border:1px solid var(--border2);padding:14px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.death-board::before{content:'SURVIVAL BOARD';position:absolute;top:0;right:0;background:var(--dimred);color:var(--red);font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:.2em;padding:3px 10px;}
+.board-names{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.board-name{font-family:'Bebas Neue',cursive;font-size:19px;letter-spacing:.08em;padding:0 3px;transition:all .3s;}
+.board-name.me-n{color:var(--teal);}
+.board-name.dead-n{color:var(--verydim);text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px;opacity:.22;}
+.board-name.hurt-n{animation:hurtName 1s forwards;}
+@keyframes hurtName{0%{color:var(--red);text-shadow:0 0 14px var(--red);}60%{color:#fff;}100%{color:var(--cream);}}
+.board-name.dying-n{animation:dyingName 1.3s forwards;}
+@keyframes dyingName{
+  0%{color:var(--red);text-shadow:0 0 20px var(--red),0 0 40px var(--red);}
+  30%{color:#fff;text-shadow:0 0 30px #fff;}
+  60%{color:var(--red);opacity:.7;transform:scale(1.1);}
+  100%{color:var(--verydim);opacity:.2;}
+}
+.board-winner{color:var(--gold);animation:winGlow 1.5s ease-in-out 3;}
+@keyframes winGlow{0%,100%{text-shadow:none;}50%{text-shadow:0 0 14px var(--gold),0 0 28px var(--gold);}}
+
+/* BOX */
+.box{background:var(--surface);border:1px solid var(--border);padding:20px 22px;margin-bottom:12px;position:relative;}
+.box-tag{position:absolute;top:-1px;left:16px;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:.2em;padding:3px 10px;}
+.t-red{background:var(--red);color:#fff;}
+.t-gold{background:var(--dimgold);color:var(--gold);}
+.t-teal{background:var(--dimteal);color:var(--teal);}
+.t-violet{background:var(--dimviolet);color:var(--violet);}
+.t-queen{background:var(--dimqueen);color:var(--queen);}
+.t-king{background:var(--dimking);color:var(--king);}
+.t-joker{background:var(--dimjoker);color:var(--joker);}
+
+/* TYPE */
+.label{font-size:8px;letter-spacing:.5em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.prose{font-family:'Crimson Pro',serif;font-size:15px;line-height:1.85;font-weight:300;}
+.prose p+p{margin-top:10px;}
+.hl{color:var(--gold);font-style:italic;}
+.err{color:var(--red);}
+.ok{color:var(--teal);}
+.dim{color:var(--muted);}
+.qq{color:var(--queen);}
+.kk{color:var(--king);}
+.jj{color:var(--joker);}
+
+/* INPUTS */
+.inp{width:100%;background:var(--dark);border:1px solid var(--border);color:var(--cream);padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;}
+.inp:focus{border-color:var(--gold);}
+.inp::placeholder{color:var(--muted);opacity:.5;}
+textarea.inp{resize:vertical;min-height:68px;line-height:1.6;}
+.row{display:flex;gap:0;}.row .inp{flex:1;border-right:none;}
+.btn{background:transparent;border:1px solid var(--muted);color:var(--cream);padding:11px 20px;font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:.2em;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:var(--gold);color:var(--gold);}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff;}
+.btn.red:hover{background:var(--dimred);}
+.btn.teal{background:var(--dimteal);border-color:var(--teal);color:var(--teal);}
+.btn.queen{background:var(--dimqueen);border-color:var(--queen);color:var(--queen);}
+.btn.king{background:var(--dimking);border-color:var(--king);color:var(--king);}
+.btn.joker{background:var(--dimjoker);border-color:var(--joker);color:var(--joker);}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+/* PLAYER GRID */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:10px;}
+.pc{background:var(--dark);border:1px solid var(--border);padding:10px 12px;transition:all .15s;}
+.pc.me{border-color:var(--teal);}
+.pc.dead{opacity:.28;filter:grayscale(1);}
+.pc.votable{cursor:pointer;}
+.pc.votable:hover{border-color:var(--red);background:rgba(192,57,43,.06);}
+.pc.selected{border-color:var(--red);background:rgba(192,57,43,.1);}
+.pc.selected .pc-n{color:var(--red);}
+.pc-i{font-size:8px;letter-spacing:.3em;color:var(--muted);}
+.pc-n{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:.08em;margin-top:1px;}
+.pc.me .pc-n{color:var(--teal);}
+.pc-lives{font-size:13px;margin-top:3px;letter-spacing:2px;}
+.pc-s{font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* STATUS STRIP */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:12px;}
+.sc{background:var(--dark);padding:8px 12px;}
+.sc-l{font-size:8px;letter-spacing:.35em;color:var(--muted);text-transform:uppercase;}
+.sc-v{font-size:12px;font-weight:700;margin-top:2px;}
+.sc-v.r{color:var(--red);}.sc-v.g{color:var(--teal);}.sc-v.o{color:var(--gold);}.sc-v.q{color:var(--queen);}.sc-v.k{color:var(--king);}.sc-v.j{color:var(--joker);}
+
+/* PHASE HEADER */
+.phase-hdr{display:flex;align-items:center;gap:12px;border:1px solid var(--border2);padding:12px 16px;margin-bottom:12px;background:var(--surface2);}
+.ph-num{font-family:'Bebas Neue',cursive;font-size:44px;line-height:1;min-width:32px;}
+.ph-num.base{color:var(--red);}.ph-num.queen{color:var(--queen);}.ph-num.king{color:var(--king);}.ph-num.joker{color:var(--joker);}
+.ph-info .ph-name{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:.12em;}
+.ph-info .ph-sub{font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:2px;}
+.ph-chip{margin-left:auto;background:var(--dark);border:1px solid var(--border2);padding:4px 11px;font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:.1em;white-space:nowrap;}
+.ph-chip.red{border-color:var(--dimred);color:var(--red);}
+.ph-chip.queen{border-color:var(--dimqueen);color:var(--queen);}
+.ph-chip.king{border-color:var(--dimking);color:var(--king);}
+.ph-chip.joker{border-color:var(--dimjoker);color:var(--joker);}
+
+/* NARRATION */
+.narr{border-left:2px solid var(--dimred);padding:11px 15px;margin:11px 0;background:rgba(192,57,43,.04);}
+.narr.queen{border-color:var(--dimqueen);background:rgba(196,154,58,.04);}
+.narr.king{border-color:var(--dimking);background:rgba(58,123,213,.04);}
+.narr.joker{border-color:var(--dimjoker);background:rgba(142,68,173,.05);}
+.narr-lbl{font-size:8px;letter-spacing:.4em;color:var(--red);text-transform:uppercase;margin-bottom:5px;}
+.narr.queen .narr-lbl{color:var(--queen);}.narr.king .narr-lbl{color:var(--king);}.narr.joker .narr-lbl{color:var(--joker);}
+
+/* CLUE CARD */
+.clue-card{background:var(--dark);border:1px solid var(--dimviolet);padding:12px 15px;margin-top:10px;}
+.clue-label{font-size:8px;letter-spacing:.4em;color:var(--violet);text-transform:uppercase;margin-bottom:5px;}
+.clue-text{font-family:'Crimson Pro',serif;font-size:14px;line-height:1.7;font-style:italic;}
+
+/* TIMER */
+.timer-wrap{margin:8px 0;}
+.timer-top{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.3em;color:var(--muted);margin-bottom:4px;}
+.timer-bg{height:3px;background:var(--border2);}
+.timer-fill{height:100%;background:var(--red);transition:width 1s linear;}
+.timer-fill.queen{background:var(--queen);}.timer-fill.king{background:var(--king);}.timer-fill.joker{background:var(--joker);}
+
+/* PUZZLE */
+.puzzle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;margin-top:10px;}
+.puz-opt{background:var(--dark);border:1px solid var(--border2);padding:13px;cursor:pointer;transition:all .15s;text-align:center;}
+.puz-opt:hover{border-color:var(--gold);}
+.puz-opt.chosen{border-color:var(--teal);background:rgba(26,156,122,.06);}
+.puz-opt .puz-icon{font-size:24px;margin-bottom:5px;}
+.puz-opt .puz-txt{font-size:12px;line-height:1.4;}
+
+/* SOLO BOX */
+.solo-box{background:var(--surface2);border:2px solid var(--gold);padding:18px;margin:10px 0;position:relative;}
+.solo-box::before{content:'YOUR PRIVATE PUZZLE';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Bebas Neue',cursive;font-size:10px;letter-spacing:.2em;padding:2px 12px;}
+
+/* VOTE REVEAL */
+.vote-reveal{text-align:center;padding:30px 20px;}
+.vr-name{font-family:'Bebas Neue',cursive;font-size:52px;letter-spacing:.1em;line-height:1;}
+.vr-name.elim-anim{animation:vElim 2.2s forwards;}
+@keyframes vElim{0%{color:var(--cream);}20%{color:var(--red);text-shadow:0 0 28px var(--red);}50%{color:#fff;text-shadow:0 0 50px #fff,0 0 80px var(--red);}80%{color:var(--red);opacity:.5;}100%{color:var(--dimred);opacity:.3;}}
+.vr-life{font-size:28px;margin-top:8px;}
+.vr-dealer{font-family:'Bebas Neue',cursive;font-size:20px;margin-top:8px;}
+
+/* CHAT */
+.chat{background:var(--dark);border:1px solid var(--border);height:136px;overflow-y:auto;padding:9px 12px;font-size:11px;line-height:1.7;margin-bottom:7px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.cm-s{color:var(--red);}.cm-me{color:var(--teal);}.cm-o{color:var(--gold);}
+.cm-who{margin-right:6px;font-weight:700;}.cm-txt{color:var(--cream);}
+
+/* SPEC BANNER */
+.spec-banner{background:repeating-linear-gradient(45deg,var(--dimred),var(--dimred) 10px,var(--dark) 10px,var(--dark) 20px);border:1px solid var(--dimred);padding:9px 16px;margin-bottom:12px;font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:.2em;color:var(--red);text-align:center;}
+
+/* ADVANCE SCREEN */
+.advance-screen{text-align:center;padding:44px 20px;}
+.adv-icon{font-size:72px;margin-bottom:12px;animation:adFloat 2s ease-in-out infinite;}
+@keyframes adFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.adv-title{font-family:'Bebas Neue',cursive;font-size:60px;letter-spacing:.1em;margin-bottom:6px;}
+.adv-flavor{font-family:'Crimson Pro',serif;font-size:15px;line-height:1.85;font-style:italic;max-width:460px;margin:0 auto 24px;}
+
+/* END */
+.end{text-align:center;padding:48px 20px;}
+.end-main{font-family:'Bebas Neue',cursive;font-size:86px;line-height:.9;letter-spacing:.08em;}
+.end-main.win{color:var(--teal);}.end-main.lose{color:var(--red);}
+.end-sub{font-size:9px;letter-spacing:.5em;color:var(--muted);margin:10px 0 22px;text-transform:uppercase;}
+.end-flavor{font-family:'Crimson Pro',serif;font-size:15px;line-height:1.9;font-style:italic;color:var(--cream);max-width:480px;margin:0 auto 26px;}
+
+/* MISC */
+.ld{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:10px;letter-spacing:.15em;padding:11px 0;}
+.ldd{width:4px;height:4px;border-radius:50%;background:var(--red);animation:ldp 1.1s infinite;}
+.ldd:nth-child(2){animation-delay:.2s}.ldd:nth-child(3){animation-delay:.4s}
+@keyframes ldp{0%,80%,100%{opacity:.1}40%{opacity:1}}
+.fi{animation:fi .3s ease forwards;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.pulse{animation:pl 1.6s infinite;}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.25}}
+.dv{display:flex;align-items:center;gap:10px;color:var(--dimred);margin:15px 0;font-size:12px;}
+.dv::before,.dv::after{content:'';flex:1;height:1px;background:var(--border2);}
+.mt{margin-top:10px;}.mb{margin-bottom:10px;}.mt2{margin-top:18px;}
+.small{font-size:10px;color:var(--muted);}
+.center{text-align:center;}
+/* CHAMPION OVERLAY */
+#championOverlay{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:#000;
+  flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+}
+#championOverlay.visible{display:flex;animation:cOvIn .35s ease forwards;}
+@keyframes cOvIn{from{opacity:0}to{opacity:1}}
+.co-pre{font-size:10px;letter-spacing:.8em;color:var(--joker);text-transform:uppercase;margin-bottom:16px;animation:coFd 4s ease forwards;}
+.co-joker{font-size:72px;margin-bottom:8px;animation:coSpin 1.2s ease-in-out infinite alternate;}
+@keyframes coSpin{from{transform:rotate(-10deg) scale(.94);}to{transform:rotate(10deg) scale(1.06);}}
+.co-name{
+  font-family:'Bebas Neue',cursive;
+  font-size:clamp(60px,15vw,130px);
+  letter-spacing:.1em;line-height:.9;
+  color:var(--joker);
+  animation:coNm 4s ease forwards;
+  text-shadow:0 0 40px var(--joker),0 0 80px var(--joker);
+}
+@keyframes coNm{
+  0%{opacity:0;transform:scale(.55) translateY(28px);}
+  18%{opacity:1;transform:scale(1.07) translateY(-4px);text-shadow:0 0 70px var(--joker),0 0 140px var(--joker);}
+  70%{opacity:1;transform:scale(1);}
+  92%{opacity:1;}
+  100%{opacity:0;transform:scale(1.03);}
+}
+.co-sub{font-size:11px;letter-spacing:.5em;color:var(--muted);margin-top:16px;text-transform:uppercase;animation:coFd 4s ease forwards;}
+.co-suits{font-size:30px;margin-top:12px;letter-spacing:.18em;animation:coFd 4s ease forwards;}
+@keyframes coFd{0%{opacity:0;}15%{opacity:1;}82%{opacity:1;}100%{opacity:0;}}
+</style>
+</head>
+<body>
+<div id="championOverlay">
+  <div class="co-pre">The Joker's Keep has spoken</div>
+  <div class="co-joker">🃏</div>
+  <div class="co-name" id="coName"></div>
+  <div class="co-sub">Champion of the Borderlands</div>
+  <div class="co-suits">♣ ♦ ♥ ♠</div>
+</div>
+<div id="app"></div>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+const MIN_P=4, MAX_P=6;
+const POLL_MS=2000;
+const CONFESS_SEC=90;
+const VOTE_SEC=60;
+const SUDDEN_SEC=30;
+const SOLO_SEC=120;
+const MODEL='claude-sonnet-4-20250514';
+const ANTHROPIC_KEY='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';
+
+// Room tiers
+const TIER={BASE:'base',QUEEN:'queen',KING:'king',JOKER:'joker'};
+const TIER_LABEL={base:'THE BORDERLANDS',queen:"QUEEN'S CHAMBER",king:"KING'S CHAMBER",joker:"JOKER'S KEEP"};
+const TIER_ICON={base:'',queen:'♛',king:'♚',joker:'🃏'};
+const TIER_COLOR={base:'var(--red)',queen:'var(--queen)',king:'var(--king)',joker:'var(--joker)'};
+
+// Lives — 4 suits as lives
+const LIFE_SUITS=['♣','♦','♥','♠'];
+const LIFE_COLORS={'♣':'alive-club','♦':'alive-diamond','♥':'alive-heart','♠':'alive-spade'};
+
+const PHASE={
+  LOBBY:'lobby',
+  CONFESS:'confess',
+  CONFESS_REVEAL:'confrev',
+  VOTE:'vote',
+  VOTE_REVEAL:'vrev',
+  SUDDEN:'sudden',
+  MYSTERY:'mystery',
+  MYSTERY_RESULT:'mystres',
+  SOLO:'solo',
+  SOLO_RESULT:'solores',
+  BRIDGE:'bridge',
+  FINAL_VOTE:'fvote',
+  FINAL_REVEAL:'frev',
+  ADVANCING:'advancing',   // winner screen — secret transfer to next tier
+  ENDED:'ended',
+};
+
+// Games per tier
+const TIER_GAMES={
+  base:  ['confess','mystery','solo','bridge'],
+  queen: ['solo','mystery','bridge'],   // harder — jump straight in
+  king:  ['mystery','solo','bridge'],
+  joker: ['confess','solo','mystery','bridge'], // full gauntlet
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILS — must be first
+// ═══════════════════════════════════════════════════════════════════════════
+function uid(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function roomCode5(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:5},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOCAL STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const ME={id:uid(),name:''};
+let RC='';
+let ROOM=null;
+let pollTimer=null;
+let timerIv=null;
+let timerLeft=0;
+let myVote=null;
+let myConfession='';
+let confLocked=false;
+let myPuzzleAnswer=null;
+let mySoloPuzzle=null;
+let mySoloAnswer=null;
+let mySoloPuzzleLoading=false;
+let pendingDeath=null;
+let pendingHurt=null;
+let aiLock={};
+let championOverlayShown=false;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIREBASE SETUP
+// ═══════════════════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBVno_UEZkwUrpUlHPK4y28QADLsdUHoYI",
+  authDomain: "borderlandsv4-28762.firebaseapp.com",
+  databaseURL: "https://borderlandsv4-28762-default-rtdb.firebaseio.com",
+  projectId: "borderlandsv4-28762",
+  storageBucket: "borderlandsv4-28762.firebasestorage.app",
+  messagingSenderId: "742197412034",
+  appId: "1:742197412034:web:aa2071c2cfd49d3e413b5b"
+};
+
+let _db = null;
+function getDB(){
+  if(_db) return _db;
+  if(typeof firebase === 'undefined'){
+    console.error('Firebase SDK not loaded yet');
+    return null;
+  }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    _db = firebase.database();
+  }catch(e){console.error('Firebase init error',e);}
+  return _db;
+}
+
+async function fbGet(path){
+  try{
+    const db=getDB(); if(!db) return null;
+    const snap = await db.ref(path).once('value');
+    return snap.exists() ? snap.val() : null;
+  }catch(e){console.error('fbGet',path,e);return null;}
+}
+async function fbSet(path, val){
+  try{
+    const db=getDB(); if(!db) return;
+    const clean = JSON.parse(JSON.stringify(val));
+    await db.ref(path).set(clean);
+  }catch(e){console.error('fbSet',path,e);}
+}
+async function fbGetChildren(path){
+  try{
+    const db=getDB(); if(!db) return [];
+    const snap = await db.ref(path).once('value');
+    if(!snap.exists()) return [];
+    const out=[];
+    snap.forEach(c=>out.push(c.val()));
+    return out;
+  }catch(e){console.error('fbGetChildren',path,e);return[];}
+}
+
+async function loadRoom(code){
+  try{
+    const data = await fbGet('rooms/' + code);
+    return data || null;
+  }catch{return null;}
+}
+async function saveRoom(r){
+  try{
+    await fbSet('rooms/' + r.code, r);
+  }catch(e){console.error('saveRoom error',e);}
+}
+async function findOpenRoom(tier){
+  try{
+    const rooms = await fbGetChildren('rooms');
+    for(const room of rooms){
+      if(!room?.code) continue;
+      if(Date.now()-room.createdAt>1800000) continue;
+      if(room.phase===PHASE.LOBBY && room.tier===tier && (room.players||[]).length<MAX_P) return room;
+    }
+  }catch{}
+  return null;
+}
+
+// Find a Queen/King/Joker room waiting for advancing winners
+async function findAdvancingRoom(tier){
+  try{
+    const rooms = await fbGetChildren('rooms');
+    for(const room of rooms){
+      if(!room?.code) continue;
+      if(Date.now()-room.createdAt>3600000) continue;
+      if(room.tier===tier && room.phase===PHASE.LOBBY && (room.players||[]).length<MAX_P) return room;
+    }
+  }catch{}
+  return null;
+}
+
+function makePlayer(id,name){
+  return{id,name,lives:[...LIFE_SUITS],lostLives:[],alive:true,confession:null,puzzleScore:0,soloAnswer:null};
+}
+
+function makeRoom(code,tier,firstPlayer){
+  return{
+    code,tier,
+    phase:PHASE.LOBBY,
+    createdAt:Date.now(),
+    players:[firstPlayer],
+    dealerId:null,
+    clues:{},
+    confessions:{},
+    confDeadline:null,
+    votes:{},
+    voteDeadline:null,
+    tiedIds:[],
+    puzzleData:null,
+    soloAnswers:{},
+    soloIndividualAnswers:{},
+    _soloDeadline:null,
+    roundResult:null,
+    narration:null,
+    messages:[{type:'sys',text:`${TIER_ICON[tier]||''} Room opened — ${TIER_LABEL[tier]}. Share the code: ${code}`,ts:Date.now()}],
+    eliminated:[],
+    gameSeq:TIER_GAMES[tier]||TIER_GAMES.base,
+    currentGameIdx:0,
+    winner:null,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI
+// ═══════════════════════════════════════════════════════════════════════════
+async function ai(prompt,tier='base'){
+  const toneMap={
+    base:'You are the cold announcer of The Borderlands survival game. Clinical, eerie, terse. Max 3 sentences.',
+    queen:`You are the voice of the Queen's Chamber — elegant but merciless. Speak with icy authority. Max 3 sentences.`,
+    king:`You are the voice of the King's Chamber — heavy, inevitable, absolute. Max 3 sentences.`,
+    joker:`You are the Joker — chaotic, unpredictable, darkly amused. Short, unsettling. Max 2 sentences.`,
+  };
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{
+        'Content-Type':'application/json',
+        'x-api-key':ANTHROPIC_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:MODEL,max_tokens:500,
+        system:toneMap[tier]||toneMap.base,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d=await r.json();
+    return d.content?.[0]?.text?.trim()||'';
+  }catch{return '';}
+}
+
+async function aiJSON(prompt){
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{
+        'Content-Type':'application/json',
+        'x-api-key':ANTHROPIC_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:MODEL,max_tokens:900,
+        system:'Respond ONLY with valid JSON. No markdown. No explanation.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d=await r.json();
+    return JSON.parse(d.content?.[0]?.text?.trim()||'{}');
+  }catch{return null;}
+}
+
+// Non-blocking narration — sets narration on room in background
+function aiBackground(roomCode,prompt,tier){
+  ai(prompt,tier).then(async n=>{
+    if(!n)return;
+    try{const r=await loadRoom(roomCode);if(r){r.narration=n;await saveRoom(r);}}catch{}
+  }).catch(()=>{});
+}
+
+async function generateClues(players,tier){
+  const names=players.map(p=>p.name);
+  const tierHint={base:'',queen:'(These are survivors from the first round — more cunning than average.)',king:'(Only the sharpest players reach this level.)',joker:'(These are the final survivors. The most dangerous people in the room.)'};
+  const r=await aiJSON(`Generate a secret clue card for each of ${players.length} players in a ${tier} tier survival game ${tierHint[tier]||''}: ${names.join(', ')}.
+Each clue is cryptic and about a DIFFERENT player. Clues get darker and more specific at higher tiers.
+Return: {"clues":[{"forId":"${players[0].id}","text":"..."},...]} — one entry per player in same order.`);
+  const clues={};
+  if(r?.clues){r.clues.forEach((c,i)=>{if(players[i])clues[players[i].id]=c.text||'Something feels off about this one.';});}
+  else{
+    const fb=['They hesitate before answering direct questions.','Watch how they watch others.','They knew more than they admitted on arrival.','Their story has changed at least once.','They smiled at the wrong moment.','Something in their eyes suggests calculation.'];
+    players.forEach((p,i)=>{clues[p.id]=fb[i%fb.length];});
+  }
+  return clues;
+}
+
+async function generateGroupPuzzle(players,tier){
+  const tierPrompt={
+    base:'Medium difficulty logic puzzle',
+    queen:'Harder — requires lateral thinking and reading subtext',
+    king:'Very hard — multi-step deduction, no obvious answer',
+    joker:'Brutal — trick question designed to mislead, correct answer is counterintuitive',
+  };
+  const r=await aiJSON(`Generate a ${tierPrompt[tier]||tierPrompt.base} for a survival game group.
+Return JSON: {"groupQ":"question text","options":["A","B","C","D"],"correctIdx":0,"reasoning":"why","soloQ":"personal question each player answers privately"}`);
+  if(r?.groupQ)return r;
+  return{groupQ:"A room has four switches. One opens the exit. Three trigger alarms. You have 10 seconds. What do you do?",options:["Switch closest to door","Switch farthest from door","Most worn switch","Look for another exit"],correctIdx:3,reasoning:"Never trust the obvious trap.",soloQ:"What is the one thing you would never sacrifice to survive?"};
+}
+
+async function generateSoloPuzzle(playerName,tier){
+  const tierPrompt={
+    base:'Medium difficulty personal logic puzzle',
+    queen:'Harder — psychological or pattern-based',
+    king:'Very hard — cryptographic or multi-step reasoning',
+    joker:'Brutal and tricky — designed to catch overconfident solvers',
+  };
+  const r=await aiJSON(`Generate a unique ${tierPrompt[tier]||tierPrompt.base} for player named ${playerName} in a survival game. Their answer will be visible to all when time runs out.
+Return JSON: {"q":"puzzle question (2-3 sentences)","options":["A","B","C","D"],"correctIdx":0,"reasoning":"brief explanation","flavor":"one atmospheric sentence"}`);
+  if(r?.q)return r;
+  return{q:"You see three doors. Behind one is freedom. The guard points at door 2 and says 'not this one.' Should you switch your original choice?",options:["Stay with original","Switch to the other door","Ask the guard","All doors lead the same place"],correctIdx:1,reasoning:"Monty Hall: switching doubles your odds.",flavor:"The door does not care which you choose."};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LIFE SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+function getPlayerLivesDisplay(player){
+  if(!player)return'';
+  const suits=LIFE_SUITS.map(s=>{
+    const lost=player.lostLives?.includes(s);
+    return`<span class="life-card ${lost?'lost':LIFE_COLORS[s]||''}">${s}</span>`;
+  });
+  return suits.join('');
+}
+
+function getLivesRemaining(player){
+  return LIFE_SUITS.filter(s=>!player.lostLives?.includes(s)).length;
+}
+
+// Remove one life from player. Returns whether they died.
+function loseLife(player){
+  const remaining=LIFE_SUITS.filter(s=>!player.lostLives?.includes(s));
+  if(remaining.length===0){player.alive=false;return true;}
+  const lost=remaining[remaining.length-1]; // lose last remaining suit
+  player.lostLives=player.lostLives||[];
+  player.lostLives.push(lost);
+  if(remaining.length===1){player.alive=false;return true;}
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// JOIN / CREATE
+// ═══════════════════════════════════════════════════════════════════════════
+async function joinRoom(name,codeInput){
+  ME.name=name.trim().toUpperCase().slice(0,14);
+  if(!ME.name)return;
+  const code=codeInput.trim().toUpperCase();
+
+  let room;
+  if(code){
+    room=await loadRoom(code);
+    if(!room){showErr('Room not found.');return;}
+    if(room.phase!==PHASE.LOBBY){showErr('Game already started.');return;}
+    if(room.players.length>=MAX_P){showErr('Room is full.');return;}
+  } else {
+    room=await findOpenRoom(TIER.BASE);
+    if(!room){
+      RC=roomCode5();
+      room=makeRoom(RC,TIER.BASE,makePlayer(ME.id,ME.name));
+    }
+  }
+
+  RC=room.code;
+  if(!room.players.find(p=>p.id===ME.id)){
+    room.players.push(makePlayer(ME.id,ME.name));
+    sysMsg(room,`${ME.name} entered the Borderlands.`);
+  }
+  ROOM=room;
+  await saveRoom(room);
+  render();
+  startPoll();
+}
+
+function showErr(msg){const el=document.getElementById('joinErr');if(el){el.textContent=msg;el.style.display='block';}}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTO START
+// ═══════════════════════════════════════════════════════════════════════════
+async function maybeStart(room){
+  if(room.phase!==PHASE.LOBBY)return;
+  if(room.players.length<MIN_P)return;
+  if(room._starting)return;
+
+  // Use atomic transaction to prevent multiple clients starting at once
+  let won=false;
+  try{
+    const ref=getDB().ref('rooms/'+room.code+'/phase');
+    await ref.transaction(current=>{
+      if(current===PHASE.LOBBY){won=true;return '__starting__';}
+      return; // abort
+    });
+  }catch(e){return;}
+  if(!won)return;
+
+  // We won the race — now start the game
+  const fresh=await loadRoom(room.code);
+  if(!fresh)return;
+  const idx=Math.floor(Math.random()*fresh.players.length);
+  fresh.dealerId=fresh.players[idx].id;
+  fresh.phase=PHASE.CONFESS;
+  fresh.confDeadline=Date.now()+CONFESS_SEC*1000;
+  fresh._starting=false;
+  fresh.narration='The games have begun. Write your confession.';
+  sysMsg(fresh,`🕯 Game begins — The Confession Wall. 90 seconds.`);
+  await saveRoom(fresh);
+
+  // Clues + narration in background
+  generateClues(fresh.players,fresh.tier).then(async clues=>{
+    const r=await loadRoom(fresh.code);if(!r)return;
+    r.clues=clues;await saveRoom(r);
+  }).catch(()=>{});
+  aiBackground(fresh.code,`The Borderlands begin. ${fresh.players.length} participants. The Confession Wall — 90 seconds to write one truth.`,fresh.tier);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFESSION
+// ═══════════════════════════════════════════════════════════════════════════
+async function submitConfession(text){
+  if(confLocked||!text.trim())return;
+  confLocked=true;
+  myConfession=text.trim();
+  const room=await loadRoom(RC);if(!room)return;
+  room.confessions=room.confessions||{};
+  room.confessions[ME.id]=myConfession;
+  const p=room.players.find(p=>p.id===ME.id);
+  if(p)p.confession=myConfession;
+  await saveRoom(room);render();
+}
+
+async function checkConfessDeadline(room){
+  if(room.phase!==PHASE.CONFESS)return;
+  if(!room.confDeadline||Date.now()<room.confDeadline)return;
+  if(aiLock['confess'])return;aiLock['confess']=true;
+  room.players.filter(p=>p.alive).forEach(p=>{if(!room.confessions?.[p.id])room.confessions[p.id]='...';});
+  room.phase=PHASE.CONFESS_REVEAL;
+  room.narration='...'; aiBackground(room.code,`90 seconds expired. All confessions now revealed. Some players wrote nothing. Describe the moment of simultaneous exposure.`,room.tier);
+  sysMsg(room,'📜 Confessions revealed.');
+  await saveRoom(room);
+  delete aiLock['confess'];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VOTING
+// ═══════════════════════════════════════════════════════════════════════════
+async function openVote(fromPhase){
+  const room=await loadRoom(RC);if(!room)return;
+  const me=room.players.find(p=>p.id===ME.id);
+  if(!me?.alive)return;
+  const voteMap={[PHASE.CONFESS_REVEAL]:PHASE.VOTE,[PHASE.MYSTERY_RESULT]:PHASE.VOTE,[PHASE.SOLO_RESULT]:PHASE.VOTE,[PHASE.BRIDGE]:PHASE.FINAL_VOTE};
+  const vPhase=voteMap[room.phase];
+  if(!vPhase)return;
+  if(room.phase===PHASE.VOTE||room.phase===PHASE.FINAL_VOTE)return;
+  room.phase=vPhase;
+  room.votes={};
+  room.voteDeadline=Date.now()+VOTE_SEC*1000;
+  myVote=null;
+  room.narration='The vote is open. Choose carefully.';
+  sysMsg(room,'🗳 Voting open — 60 seconds. Votes hidden until all cast.');
+  await saveRoom(room);
+  // narration in background
+  ai(`The vote begins. Silence. Each person must mark a name.`,room.tier).then(async n=>{
+    if(!n)return;
+    const r=await loadRoom(room.code);if(!r)return;
+    r.narration=n;await saveRoom(r);
+  }).catch(()=>{});
+}
+
+async function castVote(targetId){
+  if(myVote)return;
+  myVote=targetId;
+  const room=await loadRoom(RC);if(!room)return;
+  const me=room.players.find(p=>p.id===ME.id);
+  if(!me?.alive)return;
+  room.votes=room.votes||{};
+  room.votes[ME.id]=targetId;
+  const alive=room.players.filter(p=>p.alive);
+  sysMsg(room,`A vote cast. (${Object.keys(room.votes).length}/${alive.length})`);
+  if(Object.keys(room.votes).length>=alive.length)await resolveVotes(room);
+  else await saveRoom(room);
+  render();
+}
+
+async function checkVoteDeadline(room){
+  const vp=[PHASE.VOTE,PHASE.FINAL_VOTE,PHASE.SUDDEN];
+  if(!vp.includes(room.phase))return;
+  if(!room.voteDeadline||Date.now()<room.voteDeadline)return;
+  if(aiLock['vote'])return;aiLock['vote']=true;
+  room.players.filter(p=>p.alive).forEach(p=>{if(!room.votes[p.id])room.votes[p.id]=p.id;});
+  await resolveVotes(room);
+  delete aiLock['vote'];
+}
+
+async function resolveVotes(room){
+  const tally={};
+  Object.values(room.votes).forEach(id=>{tally[id]=(tally[id]||0)+1;});
+  const max=Math.max(...Object.values(tally));
+  const tied=Object.keys(tally).filter(id=>tally[id]===max);
+
+  // Sudden death on tie
+  if(tied.length>1&&room.phase!==PHASE.SUDDEN){
+    room.tiedIds=tied;room.phase=PHASE.SUDDEN;
+    room.votes={};room.voteDeadline=Date.now()+SUDDEN_SEC*1000;myVote=null;
+    sysMsg(room,`⚡ TIE — ${tied.map(id=>room.players.find(p=>p.id===id)?.name||id).join(' vs ')} — 30 seconds!`);
+    room.narration='...'; aiBackground(room.code,`A tie. Sudden death. Only the tied players can be voted for now. 30 seconds.`,room.tier);
+    await saveRoom(room);return;
+  }
+
+  const eliminatedId=tied[Math.floor(Math.random()*tied.length)];
+  const ep=room.players.find(p=>p.id===eliminatedId);
+  if(!ep){await saveRoom(room);return;}
+
+  // Lose a life instead of dying (if has >1 life left)
+  const died=loseLife(ep);
+  const wasDealer=eliminatedId===room.dealerId;
+  const survivors=room.players.filter(p=>p.alive).length;
+
+  if(died){
+    room.eliminated.push(eliminatedId);
+    pendingDeath=ep.name;
+    sysMsg(room,`💀 ${ep.name} has been eliminated — no lives remain.`);
+  } else {
+    pendingHurt=ep.name;
+    const livesLeft=getLivesRemaining(ep);
+    sysMsg(room,`💔 ${ep.name} lost a life — ${livesLeft} remaining.`);
+  }
+
+  room.roundResult={eliminatedId,died,wasDealer:died&&wasDealer,livesLeft:getLivesRemaining(ep),survivors,tally};
+  room.votes={};room.tiedIds=[];
+
+  const revPhase={[PHASE.VOTE]:PHASE.VOTE_REVEAL,[PHASE.SUDDEN]:PHASE.VOTE_REVEAL,[PHASE.FINAL_VOTE]:PHASE.FINAL_REVEAL};
+  room.phase=revPhase[room.phase]||PHASE.VOTE_REVEAL;
+  room.narration=died?`${ep.name} has been eliminated.`:`${ep.name} lost a life — ${getLivesRemaining(ep)} remaining.`;
+
+  // Check win condition
+  if(died){
+    if(wasDealer){room.phase=PHASE.ADVANCING;room.winner='all_survivors';}
+    else if(survivors<=1){room.phase=PHASE.ENDED;}
+  }
+  await saveRoom(room);
+
+  // AI narration in background
+  const narrPrompt=!died
+    ?`${ep.name} survives with ${getLivesRemaining(ep)} lives left. Near death.`
+    :wasDealer?`${ep.name} was the Dealer. The games end.`
+    :`${ep.name} eliminated — innocent. Dealer hides among ${survivors}.`;
+  ai(narrPrompt,room.tier).then(async n=>{
+    if(!n)return;
+    const r=await loadRoom(room.code);if(!r)return;
+    r.narration=n;await saveRoom(r);
+  }).catch(()=>{});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MYSTERY / GROUP PUZZLE
+// ═══════════════════════════════════════════════════════════════════════════
+async function submitGroupAnswer(idx){
+  if(myPuzzleAnswer!==null)return;
+  myPuzzleAnswer=idx;
+  const room=await loadRoom(RC);if(!room)return;
+  if(!room.puzzleData||room.puzzleData==='__loading__')return;
+  const me=room.players.find(p=>p.id===ME.id);
+  if(!me?.alive)return;
+  me.soloAnswer=idx;
+  sysMsg(room,`${ME.name} answered the group puzzle.`);
+  const alive=room.players.filter(p=>p.alive);
+  const answered=alive.filter(p=>p.soloAnswer!==null).length;
+  if(answered>=alive.length){
+    room.phase=PHASE.MYSTERY_RESULT;
+    room.narration='...'; aiBackground(room.code,`All answers in. The correct answer is revealed. Who solved it — and who didn't — is now visible to everyone.`,room.tier);
+    room._advanceAt=Date.now()+8000;
+    sysMsg(room,'🔍 All answered — results revealed.');
+  }
+  await saveRoom(room);render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOLO PUZZLE (private per player)
+// ═══════════════════════════════════════════════════════════════════════════
+async function submitSoloAnswer(idx){
+  if(mySoloAnswer!==null)return;
+  mySoloAnswer=idx;
+  const room=await loadRoom(RC);if(!room)return;
+  room.soloIndividualAnswers=room.soloIndividualAnswers||{};
+  room.soloIndividualAnswers[ME.id]={
+    chosen:idx,correct:mySoloPuzzle?idx===mySoloPuzzle.correctIdx:false,name:ME.name
+  };
+  sysMsg(room,`${ME.name} completed their private puzzle.`);
+  const alive=room.players.filter(p=>p.alive);
+  const done=alive.filter(p=>room.soloIndividualAnswers[p.id]).length;
+  if(done>=alive.length){
+    room.phase=PHASE.SOLO_RESULT;
+    room.narration='...'; aiBackground(room.code,`All private puzzles complete. Results exposed — right or wrong, hidden or confident.`,room.tier);
+    room._advanceAt=Date.now()+10000;
+    sysMsg(room,'🧩 All done — results shown.');
+  }
+  await saveRoom(room);render();
+}
+
+async function checkSoloDeadline(room){
+  if(room.phase!==PHASE.SOLO)return;
+  if(!room._soloDeadline||Date.now()<room._soloDeadline)return;
+  if(aiLock['solo'])return;aiLock['solo']=true;
+  room.players.filter(p=>p.alive).forEach(p=>{
+    if(!room.soloIndividualAnswers?.[p.id])
+      room.soloIndividualAnswers[p.id]={chosen:null,correct:false,name:p.name};
+  });
+  room.phase=PHASE.SOLO_RESULT;
+  room.narration='...'; aiBackground(room.code,`Time expired. Not everyone answered. Silence can reveal as much as words.`,room.tier);
+  sysMsg(room,'⏱ Time expired — solo results shown.');
+  room._advanceAt=Date.now()+10000;
+  await saveRoom(room);
+  delete aiLock['solo'];
+}
+
+async function maybeSetSoloDeadline(room){
+  if(room.phase!==PHASE.SOLO||room._soloDeadline)return;
+  room._soloDeadline=Date.now()+SOLO_SEC*1000;
+  await saveRoom(room);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADVANCE FROM REVEAL — move to next game in sequence
+// ═══════════════════════════════════════════════════════════════════════════
+async function advanceFromReveal(room){
+  const isReveal=[PHASE.VOTE_REVEAL,PHASE.CONFESS_REVEAL,PHASE.MYSTERY_RESULT,PHASE.SOLO_RESULT].includes(room.phase);
+  if(!isReveal||!room._advanceAt||Date.now()<room._advanceAt)return;
+  if(aiLock['advance'])return;aiLock['advance']=true;
+
+  // If last vote eliminated dealer or only 1 left → end
+  if(room.roundResult?.wasDealer){room.phase=PHASE.ADVANCING;await saveRoom(room);delete aiLock['advance'];return;}
+  if(room.players.filter(p=>p.alive).length<=1){room.phase=PHASE.ENDED;await saveRoom(room);delete aiLock['advance'];return;}
+
+  room.currentGameIdx=(room.currentGameIdx||0)+1;
+  const next=room.gameSeq?.[room.currentGameIdx];
+  if(!next){room.phase=PHASE.BRIDGE;} // fallback to bridge/final vote
+
+  if(next==='mystery'){
+    room.phase=PHASE.MYSTERY;
+    if(!room.puzzleData||room.puzzleData==='__loading__'){
+      room.puzzleData='__loading__';await saveRoom(room);
+      room.puzzleData=await generateGroupPuzzle(room.players.filter(p=>p.alive),room.tier);
+      room.soloAnswers={};
+      room.players.forEach(p=>{p.soloAnswer=null;});
+    }
+    room.narration='...'; aiBackground(room.code,`Game ${room.currentGameIdx+1}: The Mystery Puzzle — a group logic challenge. Everyone answers independently. Announce it.`,room.tier);
+  } else if(next==='solo'){
+    room.phase=PHASE.SOLO;
+    room.soloIndividualAnswers={};
+    room._soloDeadline=null;
+    mySoloPuzzle=null;mySoloAnswer=null;mySoloPuzzleLoading=false;
+    room.narration='...'; aiBackground(room.code,`Individual Trial. Each participant receives their own private puzzle — unique, unseen by others. 120 seconds. Answer alone.`,room.tier);
+    sysMsg(room,'🧩 Individual Trial — private puzzles loading for each player.');
+  } else if(next==='bridge'){
+    room.phase=PHASE.BRIDGE;
+    room.narration='...'; aiBackground(room.code,`The Glass Bridge. A chasm. Forty pairs of panels — one safe per pair. They must decide the crossing order, then eliminate one person before they cross.`,room.tier);
+    sysMsg(room,'🌉 The Glass Bridge. Discuss. Then vote.');
+  } else if(next==='confess'){
+    room.phase=PHASE.CONFESS;
+    room.confDeadline=Date.now()+CONFESS_SEC*1000;
+    room.confessions={};
+    confLocked=false;myConfession='';
+    room.narration='...'; aiBackground(room.code,`The Confession Wall returns. Write one truth. 90 seconds.`,room.tier);
+    sysMsg(room,'🕯 Confession Wall again — 90 seconds.');
+  }
+
+  delete room._advanceAt;
+  await saveRoom(room);
+  delete aiLock['advance'];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WINNER ADVANCEMENT — move to next tier room
+// ═══════════════════════════════════════════════════════════════════════════
+const NEXT_TIER={base:TIER.QUEEN,queen:TIER.KING,king:TIER.JOKER,joker:null};
+
+async function advanceWinners(room){
+  if(room.phase!==PHASE.ADVANCING)return;
+  if(aiLock['advancing'])return;aiLock['advancing']=true;
+
+  const nextTier=NEXT_TIER[room.tier];
+  if(!nextTier){
+    // Joker's keep — true final winner
+    const champion=room.players.find(p=>p.alive);
+    room.phase=PHASE.ENDED;
+    room.winner='champion';
+    room.championName=champion?.name||'???';
+    room.championRevealAt=Date.now();
+    // Write to GLOBAL broadcast key — every player on the site will see this
+    try{
+      await fbSet('global/champion', {
+        name: champion?.name||'???',
+        at: Date.now(),
+        room: room.code,
+      });
+    }catch{}
+    await saveRoom(room);
+    delete aiLock['advancing'];return;
+  }
+
+  // Find or create next tier room
+  let nextRoom=await findAdvancingRoom(nextTier);
+  if(!nextRoom){
+    const newCode=roomCode5();
+    nextRoom=makeRoom(newCode,nextTier,null);
+    nextRoom.players=[];
+    nextRoom.createdAt=Date.now();
+  }
+
+  // Move alive players to next room
+  const survivors=room.players.filter(p=>p.alive);
+  survivors.forEach(p=>{
+    if(!nextRoom.players.find(np=>np.id===p.id)){
+      // Reset confession/puzzle state but keep lives (or restore 1 life as reward)
+      const newP=makePlayer(p.id,p.name);
+      newP.lostLives=p.lostLives||[];
+      // Restore 1 life as reward for advancing
+      if(newP.lostLives.length>0) newP.lostLives.pop();
+      nextRoom.players.push(newP);
+    }
+  });
+  sysMsg(nextRoom,`${TIER_ICON[nextTier]} ${survivors.map(p=>p.name).join(', ')} have entered from ${TIER_LABEL[room.tier]}.`);
+  await saveRoom(nextRoom);
+
+  // Store next room code for survivors to redirect
+  room._nextRoomCode=nextRoom.code;
+  room.phase=PHASE.ENDED;
+  await saveRoom(room);
+  delete aiLock['advancing'];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POLLING
+// ═══════════════════════════════════════════════════════════════════════════
+function startPoll(){stopPoll();pollTimer=setInterval(doPoll,POLL_MS);}
+function stopPoll(){if(pollTimer)clearInterval(pollTimer);}
+
+async function doPoll(){
+  const room=await loadRoom(RC);if(!room)return;
+
+  // Detect death/hurt for animation
+  if(ROOM){
+    if(room.eliminated.length>ROOM.eliminated.length){
+      const newDead=room.eliminated[room.eliminated.length-1];
+      const dp=room.players.find(p=>p.id===newDead);
+      if(dp)pendingDeath=dp.name;
+    }
+    // detect life loss (not death)
+    room.players.forEach(p=>{
+      const prev=ROOM.players.find(rp=>rp.id===p.id);
+      if(prev&&p.lostLives?.length>(prev.lostLives?.length||0)&&p.alive)
+        pendingHurt=p.name;
+    });
+  }
+
+  ROOM=room;
+  await maybeStart(room);
+  await checkConfessDeadline(room);
+  await checkVoteDeadline(room);
+  await checkSoloDeadline(room);
+  await maybeSetSoloDeadline(room);
+  await advanceFromReveal(room);
+  await advanceWinners(room);
+
+  // Champion overlay — check GLOBAL broadcast key so EVERY player on the site sees it
+  if(!championOverlayShown){
+    try{
+      const gcd = await fbGet('global/champion');
+      if(gcd?.name && Date.now()-gcd.at < 6000){
+        showChampionOverlay(gcd.name);
+      }
+    }catch{}
+  }
+
+  // Auto-load private solo puzzle
+  const me=room.players.find(p=>p.id===ME.id);
+  if(room.phase===PHASE.SOLO&&me?.alive&&!mySoloPuzzle&&!mySoloPuzzleLoading){
+    mySoloPuzzleLoading=true;render();
+    mySoloPuzzle=await generateSoloPuzzle(ME.name,room.tier);
+    mySoloPuzzleLoading=false;
+  }
+
+  // Redirect winner to next tier room
+  if(room._nextRoomCode&&me?.alive){
+    const nextRC=room._nextRoomCode;
+    stopPoll();
+    RC=nextRC;ROOM=null;myVote=null;myConfession='';confLocked=false;
+    myPuzzleAnswer=null;mySoloPuzzle=null;mySoloAnswer=null;mySoloPuzzleLoading=false;
+    const nextRoom=await loadRoom(nextRC);
+    if(nextRoom){ROOM=nextRoom;render();startPoll();}
+    return;
+  }
+
+  render();
+  if(pendingDeath||pendingHurt)setTimeout(()=>{pendingDeath=null;pendingHurt=null;render();},2000);
+  if(room.phase===PHASE.ENDED&&!room._nextRoomCode)stopPoll();
+}
+
+function sysMsg(room,text){
+  room.messages=room.messages||[];
+  room.messages.push({type:'sys',text,ts:Date.now()});
+}
+
+async function sendChat(text){
+  if(!text.trim())return;
+  const room=await loadRoom(RC);if(!room)return;
+  const me=room.players.find(p=>p.id===ME.id);
+  if(!me?.alive)return; // spectators cannot speak
+  room.messages.push({type:'chat',authorId:ME.id,authorName:ME.name,text:text.trim(),ts:Date.now()});
+  await saveRoom(room);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAMPION OVERLAY
+// ═══════════════════════════════════════════════════════════════════════════
+function showChampionOverlay(name){
+  if(championOverlayShown)return;
+  championOverlayShown=true;
+  const overlay=document.getElementById('championOverlay');
+  const nameEl=document.getElementById('coName');
+  if(!overlay||!nameEl)return;
+  nameEl.textContent=name;
+  overlay.classList.add('visible');
+  playChampion();
+  setTimeout(()=>{
+    overlay.classList.remove('visible');
+  },4000);
+}
+
+
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+
+function playDeath(){
+  try{
+    const ctx=getAudio(),t=ctx.currentTime;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(18,t+1.6);
+    g.gain.setValueAtTime(.45,t);g.gain.exponentialRampToValueAtTime(.001,t+1.6);
+    o.start(t);o.stop(t+1.6);
+    const buf=ctx.createBuffer(1,ctx.sampleRate*.5,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length)*.12;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const fg=ctx.createGain();fg.gain.value=.25;src.connect(fg);fg.connect(ctx.destination);src.start(t);
+  }catch{}
+}
+
+function playHurt(){
+  try{
+    const ctx=getAudio(),t=ctx.currentTime;
+    [440,330].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sawtooth';o.frequency.value=f;
+      g.gain.setValueAtTime(.1,t+i*.1);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+.3);
+      o.connect(g);g.connect(ctx.destination);o.start(t+i*.1);o.stop(t+i*.1+.35);
+    });
+  }catch{}
+}
+
+function playAdvance(){
+  try{
+    const ctx=getAudio(),t=ctx.currentTime;
+    [261,329,392,523].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.18,t+i*.12+.06);
+      g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.5);
+      o.connect(g);g.connect(ctx.destination);o.start(t+i*.12);o.stop(t+i*.12+.6);
+    });
+  }catch{}
+}
+
+function playVoteOpen(){
+  try{
+    const ctx=getAudio(),t=ctx.currentTime;
+    [220,330,440].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.14);g.gain.linearRampToValueAtTime(.14,t+i*.14+.05);
+      g.gain.exponentialRampToValueAtTime(.001,t+i*.14+.4);
+      o.connect(g);g.connect(ctx.destination);o.start(t+i*.14);o.stop(t+i*.14+.5);
+    });
+  }catch{}
+}
+
+function playChampion(){
+  try{
+    const ctx=getAudio(),t=ctx.currentTime;
+    // Rising triumphant chord + distant drums
+    [[130,1.2],[196,1.0],[261,.9],[392,.7],[523,.5]].forEach(([f,v],i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.18);
+      g.gain.linearRampToValueAtTime(v*.14,t+i*.18+.12);
+      g.gain.exponentialRampToValueAtTime(.001,t+i*.18+2.2);
+      o.connect(g);g.connect(ctx.destination);o.start(t+i*.18);o.stop(t+i*.18+2.4);
+    });
+    // Low pulse
+    const op=ctx.createOscillator(),gp=ctx.createGain();
+    op.type='sawtooth';op.frequency.value=55;
+    gp.gain.setValueAtTime(.18,t+.5);gp.gain.exponentialRampToValueAtTime(.001,t+3.5);
+    op.connect(gp);gp.connect(ctx.destination);op.start(t+.5);op.stop(t+3.6);
+  }catch{}
+}
+
+
+function startCountdown(deadline,maxSec){
+  if(timerIv)clearInterval(timerIv);
+  timerLeft=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+  timerIv=setInterval(()=>{
+    timerLeft=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+    const fill=document.getElementById('timerFill');
+    const sec=document.getElementById('timerSec');
+    if(fill)fill.style.width=(timerLeft/maxSec*100)+'%';
+    if(sec)sec.textContent=timerLeft+'s';
+    if(timerLeft<=0)clearInterval(timerIv);
+  },500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function render(){
+  const room=ROOM;
+  const phase=room?.phase;
+  const tier=room?.tier||TIER.BASE;
+
+  let body='';
+  if(!ME.name||!phase||phase===PHASE.LOBBY)body=rLobby(room);
+  else if(phase===PHASE.ADVANCING)body=rAdvancing(room);
+  else if(phase===PHASE.ENDED)body=rEnd(room);
+  else body=rGame(room);
+
+  document.getElementById('app').innerHTML=rHeader(tier,room)+body;
+  bindAll();
+  const cb=document.getElementById('chatBox');if(cb)cb.scrollTop=cb.scrollHeight;
+
+  // Animations
+  if(pendingDeath){
+    document.querySelectorAll('.board-name').forEach(el=>{
+      if(el.dataset.pname===pendingDeath){el.classList.add('dying-n');playDeath();setTimeout(()=>{el.classList.remove('dying-n');el.classList.add('dead-n');},1400);}
+    });
+  }
+  if(pendingHurt){
+    document.querySelectorAll('.board-name').forEach(el=>{
+      if(el.dataset.pname===pendingHurt){el.classList.add('hurt-n');playHurt();setTimeout(()=>el.classList.remove('hurt-n'),1100);}
+    });
+    // also animate life card
+    document.querySelectorAll('.life-card').forEach(el=>{
+      if(el.dataset.owner===pendingHurt&&el.classList.contains('lost')&&!el.classList.contains('was-lost')){
+        el.classList.add('losing');el.dataset.wasLost='1';
+      }
+    });
+  }
+}
+
+// ── HEADER ─────────────────────────────────────────────────────────────────
+function rHeader(tier,room){
+  const labels={base:'THE <em>BORDER</em>LANDS',queen:'QUEEN\'S <em>CHAMBER</em>',king:'KING\'S <em>CHAMBER</em>',joker:'THE <em>JOKER\'S</em> KEEP'};
+  const roomLabel=RC?`<div class="room-tag">ROOM <b>${RC}</b>${room?.tier&&room.tier!==TIER.BASE?' &nbsp;·&nbsp; '+TIER_LABEL[room.tier]:''}</div>`:'';
+  return`<div class="hdr">
+    <div class="hdr-pre">Survival · Deduction · ${TIER_LABEL[tier]||'The Borderlands'}</div>
+    <div class="hdr-title tier-${tier}">${labels[tier]||labels.base}</div>
+    <div class="hdr-suits"><span class="r">♥</span><span class="r">♦</span><span>♠</span><span>♣</span></div>
+    ${roomLabel}
+  </div>`;
+}
+
+// ── TIER BANNER ─────────────────────────────────────────────────────────────
+function rTierBanner(tier){
+  if(tier===TIER.BASE)return'';
+  const icons={queen:'♛',king:'♚',joker:'🃏'};
+  const msgs={
+    queen:'You have survived the first trial. The Queen is watching.',
+    king:'Few reach this chamber. The King does not tolerate failure.',
+    joker:'This is the end. The Joker has no rules.',
+  };
+  return`<div class="tier-banner ${tier}">${icons[tier]||''} ${msgs[tier]||''} ${icons[tier]||''}</div>`;
+}
+
+// ── LIVES BAR ───────────────────────────────────────────────────────────────
+function rLivesBar(room){
+  const me=room?.players?.find(p=>p.id===ME.id);
+  if(!me)return'';
+  const livesRemaining=getLivesRemaining(me);
+  const suitHtml=LIFE_SUITS.map(s=>{
+    const lost=me.lostLives?.includes(s);
+    return`<span class="life-card ${lost?'lost':LIFE_COLORS[s]||''}" data-owner="${esc(me.name)}">${s}</span>`;
+  }).join('');
+  return`<div class="lives-bar fi">
+    <span class="lives-label">Your Lives</span>
+    ${suitHtml}
+    <span class="lives-count">${livesRemaining}/4 remaining</span>
+  </div>`;
+}
+
+// ── DEATH BOARD ─────────────────────────────────────────────────────────────
+function rBoard(room){
+  if(!room?.players?.length)return'';
+  const names=room.players.map(p=>{
+    const isMe=p.id===ME.id;
+    const isDead=!p.alive;
+    const isDying=pendingDeath===p.name&&isDead;
+    const isHurt=pendingHurt===p.name&&p.alive;
+    return`<span class="board-name ${isMe?'me-n':''} ${isDead&&!isDying?'dead-n':''} ${isDying?'dying-n':''} ${isHurt?'hurt-n':''}" data-pname="${esc(p.name)}">${esc(p.name)}</span>`;
+  }).join('');
+  return`<div class="death-board"><div class="label">Participants</div><div class="board-names">${names}</div></div>`;
+}
+
+// ── LOBBY ───────────────────────────────────────────────────────────────────
+function rLobby(room){
+  const count=room?.players?.length||0;
+  return`<div class="fi">
+  <div class="box">
+    <div class="prose mb">
+      <p>You wake in a cold room. The door is already locked. Somewhere, others are waking too.</p>
+      <p>Each of you carries <span class="hl">four lives</span> — ♣ ♦ ♥ ♠. Lose them all and you're gone. Survive long enough and you advance.</p>
+      <p>One among you is the Dealer. Find them.</p>
+    </div>
+    <div class="dv">◈</div>
+    <div class="label">Enter to join</div>
+    <div style="display:grid;gap:8px;margin-bottom:8px">
+      <input class="inp" id="nameInp" placeholder="Your name..." maxlength="14"/>
+      <input class="inp" id="codeInp" placeholder="Room code — leave blank to auto-join..." maxlength="5" style="text-transform:uppercase;letter-spacing:.2em"/>
+    </div>
+    <button class="btn red" id="joinBtn" style="width:100%">ENTER THE BORDERLANDS</button>
+    <div class="err" id="joinErr" style="display:none;margin-top:7px;font-size:11px;"></div>
+  </div>
+  ${room?`
+  <div class="box">
+    <div class="box-tag t-gold">ROOM ${esc(room.code)} — WAITING</div>
+    <div style="margin-top:8px">
+      <div class="label">Share this code</div>
+      <div style="font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:.25em;color:var(--gold);text-align:center;padding:5px 0">${esc(room.code)}</div>
+      <div class="pgrid">
+        ${room.players.map((p,i)=>`<div class="pc ${p.id===ME.id?'me':''}">
+          <div class="pc-i">PLAYER ${i+1}</div>
+          <div class="pc-n">${esc(p.name)}${p.id===ME.id?' ◈':''}</div>
+          <div class="pc-lives">${LIFE_SUITS.join(' ')}</div>
+        </div>`).join('')}
+        ${Array.from({length:MAX_P-count},(_,i)=>`<div class="pc" style="opacity:.15">
+          <div class="pc-i">PLAYER ${count+i+1}</div>
+          <div class="pc-n" style="color:var(--border2)">——</div>
+        </div>`).join('')}
+      </div>
+      <div class="small mt">${count}/${MAX_P} · ${count<MIN_P?`Need ${MIN_P-count} more`:'Starting soon...'}</div>
+    </div>
+  </div>
+  ${rChat(room)}`:''}
+  </div>`;
+}
+
+// ── GAME ────────────────────────────────────────────────────────────────────
+function rGame(room){
+  const phase=room.phase;
+  const tier=room.tier;
+  const me=room.players.find(p=>p.id===ME.id);
+  const isAlive=me?.alive;
+  const alive=room.players.filter(p=>p.alive);
+  const tc=tier==='queen'?'queen':tier==='king'?'king':tier==='joker'?'joker':'base';
+
+  const gameNumMap={[PHASE.CONFESS]:'01',[PHASE.CONFESS_REVEAL]:'01',[PHASE.VOTE]:'◈',[PHASE.VOTE_REVEAL]:'◈',[PHASE.SUDDEN]:'⚡',[PHASE.MYSTERY]:'02',[PHASE.MYSTERY_RESULT]:'02',[PHASE.SOLO]:'02b',[PHASE.SOLO_RESULT]:'02b',[PHASE.BRIDGE]:'03',[PHASE.FINAL_VOTE]:'◈',[PHASE.FINAL_REVEAL]:'◈'};
+  const gameNameMap={[PHASE.CONFESS]:'THE CONFESSION WALL',[PHASE.CONFESS_REVEAL]:'CONFESSIONS REVEALED',[PHASE.VOTE]:'SILENT VOTE',[PHASE.VOTE_REVEAL]:'VERDICT',[PHASE.SUDDEN]:'SUDDEN DEATH',[PHASE.MYSTERY]:'THE MYSTERY PUZZLE',[PHASE.MYSTERY_RESULT]:'PUZZLE RESULTS',[PHASE.SOLO]:'INDIVIDUAL TRIAL',[PHASE.SOLO_RESULT]:'TRIAL RESULTS',[PHASE.BRIDGE]:'THE GLASS BRIDGE',[PHASE.FINAL_VOTE]:'FINAL VOTE',[PHASE.FINAL_REVEAL]:'FINAL VERDICT'};
+  const cardMap={[PHASE.CONFESS]:'♦ DIAMONDS — 3',[PHASE.CONFESS_REVEAL]:'♦ DIAMONDS — 3',[PHASE.MYSTERY]:'♣ CLUBS — J',[PHASE.MYSTERY_RESULT]:'♣ CLUBS — J',[PHASE.SOLO]:'♥ HEARTS — 8',[PHASE.SOLO_RESULT]:'♥ HEARTS — 8',[PHASE.BRIDGE]:'♠ SPADES — A',[PHASE.FINAL_VOTE]:'♠ SPADES — A',[PHASE.FINAL_REVEAL]:'♠ SPADES — A',[PHASE.VOTE]:'🗳 VOTE',[PHASE.SUDDEN]:'⚡ TIE'};
+
+  const strip=`<div class="strip">
+    <div class="sc"><div class="sc-l">You</div><div class="sc-v g">${esc(ME.name)}</div></div>
+    <div class="sc"><div class="sc-l">Tier</div><div class="sc-v ${tc}">${TIER_ICON[tier]||''} ${TIER_LABEL[tier]||''}</div></div>
+    <div class="sc"><div class="sc-l">Alive</div><div class="sc-v ${alive.length<=2?'r':'g'}">${alive.length}</div></div>
+    <div class="sc"><div class="sc-l">Status</div><div class="sc-v ${isAlive?'g':'r'}">${isAlive?'ALIVE':'SPECTATOR'}</div></div>
+  </div>`;
+
+  const phaseHdr=`<div class="phase-hdr fi">
+    <div class="ph-num ${tc}">${gameNumMap[phase]||'?'}</div>
+    <div class="ph-info"><div class="ph-name">${gameNameMap[phase]||'...'}</div><div class="ph-sub">${alive.length} participants — ${TIER_LABEL[tier]}</div></div>
+    <div class="ph-chip ${tc}">${cardMap[phase]||''}</div>
+  </div>`;
+
+  const narrCls=tier==='queen'?'queen':tier==='king'?'king':tier==='joker'?'joker':'';
+  const narr=room.narration&&room.narration!=='__loading__'
+    ?`<div class="narr ${narrCls} fi"><div class="narr-lbl">◈ ${TIER_LABEL[tier]||'THE BORDERLANDS'}</div><div class="prose">${esc(room.narration).split('\n').filter(Boolean).map(l=>`<p>${l}</p>`).join('')}</div></div>`
+    :room.narration==='__loading__'?`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Preparing...</span></div>`:'';
+
+  const clue=room.clues?.[ME.id]?`<div class="clue-card fi"><div class="clue-label">◈ Your Secret Clue</div><div class="clue-text">${esc(room.clues[ME.id])}</div></div>`:'';
+
+  let main='';
+  if(phase===PHASE.CONFESS)main=rConfess(room,me);
+  else if(phase===PHASE.CONFESS_REVEAL)main=rConfessReveal(room);
+  else if(phase===PHASE.VOTE||phase===PHASE.FINAL_VOTE)main=rVote(room,me,alive);
+  else if(phase===PHASE.SUDDEN)main=rSudden(room,me);
+  else if(phase===PHASE.VOTE_REVEAL||phase===PHASE.FINAL_REVEAL)main=rReveal(room);
+  else if(phase===PHASE.MYSTERY)main=rMystery(room,me);
+  else if(phase===PHASE.MYSTERY_RESULT)main=rMysteryResult(room,me);
+  else if(phase===PHASE.SOLO)main=rSolo(room,me);
+  else if(phase===PHASE.SOLO_RESULT)main=rSoloResult(room,me);
+  else if(phase===PHASE.BRIDGE)main=rBridge(room,me,alive);
+
+  return`<div class="fi">
+    ${rTierBanner(tier)}
+    ${rBoard(room)}
+    ${rLivesBar(room)}
+    ${!isAlive?`<div class="spec-banner">👁 SPECTATOR — WATCH IN SILENCE</div>`:''}
+    ${strip}${phaseHdr}${narr}${clue}${main}
+    ${rChat(room)}
+  </div>`;
+}
+
+// ── PLAYER GRID helper ──────────────────────────────────────────────────────
+function rPlayerGrid(room,opts={}){
+  const alive=room.players.filter(p=>p.alive);
+  return`<div class="pgrid">${alive.map((p,i)=>{
+    const isMe=p.id===ME.id;
+    const isVotable=opts.votable&&!isMe;
+    const isSelected=opts.myVote===p.id;
+    const votes=opts.tally?.[p.id]||0;
+    return`<div class="pc ${isMe?'me':''} ${isVotable?'votable':''} ${isSelected?'selected':''} ${opts.disabled&&!isSelected?'':''}
+      " ${isVotable&&!opts.disabled?`data-vtgt="${p.id}"`:''} style="${opts.disabled&&!isSelected?'opacity:.38;pointer-events:none':''}">
+      <div class="pc-i">PLAYER ${i+1}</div>
+      <div class="pc-n">${esc(p.name)}${isMe?' ◈':''}</div>
+      <div class="pc-lives" style="font-size:12px">${LIFE_SUITS.map(s=>`<span style="color:${p.lostLives?.includes(s)?'var(--verydim)':s==='♦'||s==='♥'?'var(--red)':'#a0c4f8'};opacity:${p.lostLives?.includes(s)?.25:1}">${s}</span>`).join('')}</div>
+      ${votes?`<div class="pc-s" style="color:var(--red)">▲ ${votes} vote${votes>1?'s':''}</div>`:''}
+      ${isSelected?`<div class="pc-s ok">YOUR VOTE</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── CONFESSION ──────────────────────────────────────────────────────────────
+function rConfess(room,me){
+  const dl=room.confDeadline||Date.now()+CONFESS_SEC*1000;
+  const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startCountdown(dl,CONFESS_SEC);
+  const locked=confLocked||(room.confessions?.[ME.id]!=null);
+  const submitted=Object.keys(room.confessions||{}).length;
+  const total=room.players.filter(p=>p.alive).length;
+  if(!me?.alive)return`<div class="box fi"><div class="box-tag t-red">CONFESSION WALL</div><div style="margin-top:8px"><div class="prose"><p>Players are writing their confessions. You are spectating.</p></div></div></div>`;
+  return`<div class="box fi"><div class="box-tag t-red">GAME — CONFESSION WALL</div>
+    <div style="margin-top:8px">
+      <div class="prose mb"><p>Write one true thing. <span class="err">90 seconds.</span> You may not reveal your designation.</p></div>
+      <div class="timer-wrap"><div class="timer-top"><span>TIME</span><span id="timerSec">${left}s</span></div><div class="timer-bg"><div class="timer-fill" id="timerFill" style="width:${left/CONFESS_SEC*100}%"></div></div></div>
+      ${locked
+        ?`<div style="padding:12px 14px;background:var(--dark);border:1px solid var(--border2);margin-top:8px"><div style="font-size:8px;letter-spacing:.4em;color:var(--muted);margin-bottom:4px">LOCKED IN</div><div class="prose" style="font-style:italic">${esc(room.confessions?.[ME.id]||myConfession||'...')}</div></div><div class="small mt">${submitted}/${total} submitted</div>`
+        :`<textarea class="inp" id="confInp" placeholder="Your confession..." maxlength="200" style="margin-top:8px">${esc(myConfession)}</textarea>
+          <button class="btn red mt" id="confBtn">LOCK IN</button><div class="small mt">${submitted}/${total} submitted</div>`}
+    </div></div>`;
+}
+
+function rConfessReveal(room){
+  const confs=room.confessions||{};
+  const alive=room.players.filter(p=>p.alive);
+  const rows=alive.map(p=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="font-size:9px;letter-spacing:.3em;color:var(--gold);margin-bottom:3px">${esc(p.name)}${p.id===ME.id?' (YOU)':''}</div>
+    <div class="prose" style="font-size:14px;font-style:italic;color:${confs[p.id]==='...'?'var(--muted)':'var(--cream)'}">${esc(confs[p.id]||'— said nothing —')}</div>
+  </div>`).join('');
+  const me=room.players.find(p=>p.id===ME.id);
+  return`<div class="box fi"><div class="box-tag t-red">CONFESSIONS REVEALED</div>
+    <div style="margin-top:8px">
+      <div class="prose mb"><p>Read carefully. One voice here belongs to the Dealer. Discuss. Then open the vote.</p></div>
+      ${rows}
+      ${me?.alive?`<button class="btn red mt2" id="openVoteBtn">OPEN THE VOTE</button>`:''}
+    </div></div>`;
+}
+
+// ── VOTE ────────────────────────────────────────────────────────────────────
+function rVote(room,me,alive){
+  const dl=room.voteDeadline||Date.now()+VOTE_SEC*1000;
+  const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startCountdown(dl,VOTE_SEC);
+  const castCount=Object.keys(room.votes||{}).length;
+  if(!me?.alive)return`<div class="box fi"><div class="box-tag t-red">VOTE IN PROGRESS</div><div style="margin-top:8px"><div class="prose"><p>${castCount}/${alive.length} votes cast. Spectating.</p></div></div></div>`;
+  return`<div class="box fi"><div class="box-tag t-red">SILENT VOTE — HIDDEN UNTIL ALL CAST</div>
+    <div style="margin-top:8px">
+      <div class="timer-wrap"><div class="timer-top"><span>CLOSES IN</span><span id="timerSec" class="err">${left}s</span></div><div class="timer-bg"><div class="timer-fill" id="timerFill" style="width:${left/VOTE_SEC*100}%"></div></div></div>
+      <div class="prose mb" style="margin-top:8px"><p>Tap a participant. <span class="err">Your vote is final.</span> Results hidden until all vote or time expires.</p></div>
+      ${rPlayerGrid(room,{votable:true,myVote,disabled:!!myVote,tally:{}})}
+      <div class="small mt">${castCount}/${alive.length} votes cast ${myVote?'· Locked':''}</div>
+    </div></div>`;
+}
+
+function rSudden(room,me){
+  const dl=room.voteDeadline||Date.now()+SUDDEN_SEC*1000;
+  const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startCountdown(dl,SUDDEN_SEC);
+  const tied=(room.tiedIds||[]).map(id=>room.players.find(p=>p.id===id)).filter(Boolean);
+  const alive=room.players.filter(p=>p.alive);
+  return`<div class="box fi" style="border-color:var(--red)"><div class="box-tag t-red">⚡ SUDDEN DEATH — ${left}s</div>
+    <div style="margin-top:8px">
+      <div style="font-family:'Bebas Neue',cursive;font-size:40px;color:var(--red);text-align:center;margin:8px 0 12px" id="timerSec">${left}</div>
+      <div class="timer-wrap"><div class="timer-bg"><div class="timer-fill" id="timerFill" style="width:${left/SUDDEN_SEC*100}%"></div></div></div>
+      ${me?.alive?`
+      <div class="pgrid">${tied.map(p=>`
+        <div class="pc votable ${myVote===p.id?'selected':''}" data-vtgt="${p.id}" style="${myVote&&myVote!==p.id?'opacity:.35;pointer-events:none':''}">
+          <div class="pc-i">SUDDEN DEATH</div><div class="pc-n">${esc(p.name)}</div>
+          <div class="pc-lives">${LIFE_SUITS.map(s=>`<span style="opacity:${p.lostLives?.includes(s)?.2:1};color:${s==='♦'||s==='♥'?'var(--red)':'#a0c4f8'}">${s}</span>`).join('')}</div>
+          ${myVote===p.id?`<div class="pc-s err">VOTED</div>`:''}
+        </div>`).join('')}
+      </div>`:`<div class="dim">Spectating.</div>`}
+    </div></div>`;
+}
+
+// ── REVEAL ──────────────────────────────────────────────────────────────────
+function rReveal(room){
+  if(!room.roundResult)return'';
+  const{eliminatedId,died,wasDealer,livesLeft,tally}=room.roundResult;
+  const ep=room.players.find(p=>p.id===eliminatedId);
+  const me=room.players.find(p=>p.id===ME.id);
+  const tallyRows=Object.entries(tally||{}).sort((a,b)=>b[1]-a[1]).map(([id,v])=>{
+    const p=room.players.find(p=>p.id===id);
+    const total=room.players.filter(p=>p.alive).length+1;
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-family:'Bebas Neue',cursive;font-size:14px;min-width:80px">${esc(p?.name||id)}</span>
+      <div style="flex:1;height:3px;background:var(--border2)"><div style="width:${v/total*100}%;height:100%;background:var(--red)"></div></div>
+      <span style="font-size:10px;color:var(--muted)">${v}</span>
+    </div>`;
+  }).join('');
+  const canAdvance=me?.alive&&!wasDealer;
+  return`<div class="box fi">
+    <div class="vote-reveal">
+      ${died?`<div class="vr-name elim-anim">${esc(ep?.name||'?')}</div>
+        <div class="vr-life">${ep?LIFE_SUITS.map(s=>`<span style="opacity:${ep.lostLives?.includes(s)?.15:.8}">${s}</span>`).join(''):''}</div>
+        <div class="vr-label">${eliminatedId===ME.id?'YOU HAVE BEEN ELIMINATED':'ELIMINATED — ALL LIVES LOST'}</div>
+        <div class="vr-dealer" style="color:${wasDealer?'var(--teal)':'var(--red)'}">${wasDealer?'✓ WAS THE DEALER':'✗ WAS INNOCENT'}</div>`
+      :`<div style="font-family:'Bebas Neue',cursive;font-size:36px;color:var(--gold)">${esc(ep?.name||'?')}</div>
+        <div class="vr-life">${ep?LIFE_SUITS.map(s=>`<span style="opacity:${ep.lostLives?.includes(s)?.15:.8};font-size:20px">${s}</span>`).join(''):''}</div>
+        <div class="vr-label" style="color:var(--gold)">LOST A LIFE — ${livesLeft} REMAINING</div>
+        <div class="small mt">The Dealer is still hidden. This participant survives — for now.</div>`}
+    </div>
+    <div class="mt"><div class="label">Vote tally</div>${tallyRows}</div>
+    ${canAdvance?`<button class="btn red mt2" id="advanceBtn">CONTINUE →</button>`:''}
+  </div>`;
+}
+
+// ── MYSTERY ─────────────────────────────────────────────────────────────────
+function rMystery(room,me){
+  const pd=room.puzzleData;
+  if(!pd||pd==='__loading__')return`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Generating puzzle...</span></div>`;
+  const alive=room.players.filter(p=>p.alive);
+  const answeredCount=alive.filter(p=>p.soloAnswer!==null&&p.soloAnswer!==undefined).length;
+  if(!me?.alive)return`<div class="box fi"><div class="box-tag t-violet">GROUP PUZZLE</div><div style="margin-top:8px"><div class="prose"><p>${answeredCount}/${alive.length} answered. Spectating.</p></div></div></div>`;
+  return`<div class="box fi"><div class="box-tag t-violet">GROUP PUZZLE</div>
+    <div style="margin-top:8px">
+      <div class="prose mb"><p><span class="hl">${esc(pd.groupQ)}</span></p></div>
+      <div class="puzzle-grid">
+        ${pd.options.map((opt,i)=>`<div class="puz-opt ${myPuzzleAnswer===i?'chosen':''}" data-pidx="${i}" style="${myPuzzleAnswer!==null&&myPuzzleAnswer!==i?'opacity:.35;pointer-events:none':'cursor:pointer'}">
+          <div class="puz-icon">${['◈','◇','▲','○'][i]}</div><div class="puz-txt">${esc(opt)}</div></div>`).join('')}
+      </div>
+      <div class="small mt">${answeredCount}/${alive.length} answered</div>
+    </div></div>`;
+}
+
+function rMysteryResult(room,me){
+  const pd=room.puzzleData;if(!pd||pd==='__loading__')return'';
+  const alive=room.players.filter(p=>p.alive);
+  return`<div class="box fi"><div class="box-tag t-violet">PUZZLE RESULTS</div>
+    <div style="margin-top:8px">
+      <div class="prose mb"><p>Correct answer: <span class="hl">${esc(pd.options[pd.correctIdx])}</span></p><p class="dim">${esc(pd.reasoning)}</p></div>
+      ${alive.map(p=>{const right=p.soloAnswer===pd.correctIdx;return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="font-family:'Bebas Neue',cursive;font-size:15px;min-width:80px;color:${p.id===ME.id?'var(--teal)':'var(--cream)'}">${esc(p.name)}</span>
+        <span style="font-size:11px;color:${right?'var(--teal)':'var(--red)'}">${p.soloAnswer!==null&&p.soloAnswer!==undefined?esc(pd.options[p.soloAnswer]||'?'):'no answer'}</span>
+        <span style="margin-left:auto;font-size:10px;color:${right?'var(--teal)':'var(--red)'}">${right?'✓':'✗'}</span>
+      </div>`;}).join('')}
+      ${me?.alive?`<button class="btn red mt2" id="openVoteBtn">OPEN THE VOTE</button>`:''}
+    </div></div>`;
+}
+
+// ── SOLO ─────────────────────────────────────────────────────────────────────
+function rSolo(room,me){
+  const dl=room._soloDeadline||Date.now()+SOLO_SEC*1000;
+  const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startCountdown(dl,SOLO_SEC);
+  const done=room.soloIndividualAnswers?.[ME.id];
+  const total=room.players.filter(p=>p.alive).length;
+  const totalDone=Object.keys(room.soloIndividualAnswers||{}).length;
+  if(!me?.alive)return`<div class="box fi"><div class="box-tag t-violet">INDIVIDUAL TRIAL</div><div style="margin-top:8px"><div class="prose"><p>Each player is solving a private puzzle. ${totalDone}/${total} done. Spectating.</p></div></div></div>`;
+  return`<div class="solo-box fi">
+    <div class="timer-wrap" style="margin-top:14px"><div class="timer-top"><span>PRIVATE PUZZLE — TIME</span><span id="timerSec" class="err">${left}s</span></div><div class="timer-bg"><div class="timer-fill" id="timerFill" style="width:${left/SOLO_SEC*100}%"></div></div></div>
+    ${done?`<div style="padding:12px;border:1px solid var(--teal);background:rgba(26,156,122,.06);margin-top:10px">
+        <div style="font-size:8px;letter-spacing:.4em;color:var(--teal);margin-bottom:4px">ANSWER LOCKED</div>
+        <div class="prose" style="font-size:13px">You chose: <span class="hl">${esc(mySoloPuzzle?.options?.[mySoloAnswer]||'?')}</span></div>
+      </div><div class="small mt">${totalDone}/${total} completed</div>`
+    :mySoloPuzzleLoading?`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Loading your private puzzle...</span></div>`
+    :mySoloPuzzle?`<div style="margin:14px 0 8px"><div class="small mb" style="color:var(--violet)">${esc(mySoloPuzzle.flavor||'')}</div>
+        <div class="prose mb"><p><span class="hl">${esc(mySoloPuzzle.q)}</span></p></div>
+        <div class="puzzle-grid">${mySoloPuzzle.options.map((opt,i)=>`<div class="puz-opt" data-solo="${i}">
+          <div class="puz-icon">${['◈','◇','▲','○'][i]}</div><div class="puz-txt">${esc(opt)}</div></div>`).join('')}</div>
+        <div class="small mt">${totalDone}/${total} completed</div></div>`
+    :`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Preparing your puzzle...</span></div>`}
+  </div>`;
+}
+
+function rSoloResult(room,me){
+  const results=room.soloIndividualAnswers||{};
+  const alive=room.players.filter(p=>p.alive);
+  const myR=results[ME.id];
+  return`<div class="box fi"><div class="box-tag t-violet">INDIVIDUAL TRIAL — RESULTS</div>
+    <div style="margin-top:8px">
+      <div class="prose mb"><p>Each player faced a different puzzle. Only they know if they were right. <span class="hl">Observe who seems relieved.</span></p></div>
+      ${myR?`<div style="padding:11px 13px;border:1px solid ${myR.correct?'var(--teal)':'var(--red)'};background:${myR.correct?'rgba(26,156,122,.06)':'rgba(192,57,43,.06)'};margin-bottom:12px">
+        <div style="font-size:8px;letter-spacing:.35em;color:${myR.correct?'var(--teal)':'var(--red)'};margin-bottom:3px">YOUR RESULT</div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:20px;color:${myR.correct?'var(--teal)':'var(--red)'}">${myR.correct?'✓ CORRECT':'✗ INCORRECT'}</div>
+        ${mySoloPuzzle?`<div class="small mt">${esc(mySoloPuzzle.reasoning)}</div>`:''}
+      </div>`:''}
+      ${alive.map(p=>{const r=results[p.id];const isMe=p.id===ME.id;return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="font-family:'Bebas Neue',cursive;font-size:15px;min-width:80px;color:${isMe?'var(--teal)':'var(--cream)'}">${esc(p.name)}${isMe?' ◈':''}</span>
+        <span style="font-size:11px;color:${r?'var(--gold)':'var(--muted)'}">${r?'Completed':'Did not finish'}</span>
+        ${isMe&&r?`<span style="margin-left:auto;font-size:10px;color:${r.correct?'var(--teal)':'var(--red)'}">${r.correct?'CORRECT':'WRONG'}</span>`:`<span style="margin-left:auto;font-size:10px;color:var(--muted)">???</span>`}
+      </div>`;}).join('')}
+      ${me?.alive?`<button class="btn red mt2" id="openVoteBtn">OPEN THE VOTE</button>`:''}
+    </div></div>`;
+}
+
+// ── BRIDGE ───────────────────────────────────────────────────────────────────
+function rBridge(room,me,alive){
+  const tc=room.tier;
+  const tagCls={base:'t-red',queen:'t-queen',king:'t-king',joker:'t-joker'}[tc]||'t-red';
+  const btnCls={base:'red',queen:'queen',king:'king',joker:'joker'}[tc]||'red';
+  return`<div class="box fi"><div class="box-tag ${tagCls}">THE GLASS BRIDGE</div>
+    <div style="margin-top:8px">
+      <div class="prose mb">
+        <p>Forty pairs of glass panels cross the abyss. One holds. One shatters.</p>
+        <p>Discuss the crossing order. When ready — open the final vote. <span class="hl">One person will not cross.</span></p>
+        ${tc==='joker'?`<p class="jj">The Joker has added a twist: two panels in each pair look identical but one has been marked with invisible ink. There is no way to know.</p>`:''}
+        ${tc==='king'?`<p class="kk">The King's rules: the first to cross has no map. Each subsequent player learns from the one before's failure.</p>`:''}
+      </div>
+      ${rPlayerGrid(room,{})}
+      ${me?.alive?`<button class="btn ${btnCls} mt2" id="openFinalVoteBtn">OPEN FINAL VOTE</button>`:''}
+    </div></div>`;
+}
+
+// ── ADVANCING ────────────────────────────────────────────────────────────────
+function rAdvancing(room){
+  const nextTier=NEXT_TIER[room.tier];
+  const icons={queen:'♛',king:'♚',joker:'🃏'};
+  const msgs={
+    queen:{title:'ADVANCING',flavor:'The Dealer was found. The door opens — but not to the street. Another room waits. The Queen\'s Chamber.',icon:'♛',color:'var(--queen)'},
+    king:{title:'ADVANCING',flavor:'You survived the Queen. The King\'s Chamber is colder. Harder. You have earned the right to enter.',icon:'♚',color:'var(--king)'},
+    joker:{title:'FINAL TRIAL',flavor:'The King has been satisfied. One room remains. You do not know what awaits inside. The Joker does not follow rules.',icon:'🃏',color:'var(--joker)'},
+    base:{title:'YOU WIN',flavor:'The Borderlands are cleared. You are free.',icon:'◈',color:'var(--teal)'},
+  };
+  const m=msgs[nextTier||'base'];
+  const me=room.players.find(p=>p.id===ME.id);
+  const isWinner=me?.alive;
+  playAdvance();
+  return`<div class="advance-screen fi">
+    <div class="adv-icon" style="color:${m.color}">${m.icon}</div>
+    <div class="adv-title" style="color:${m.color}">${m.title}</div>
+    <div class="adv-flavor">${m.flavor}</div>
+    ${isWinner?`<div style="font-size:11px;letter-spacing:.3em;color:var(--muted);margin-bottom:20px">TRANSFERRING YOU SECRETLY...</div>
+      <div class="ld" style="justify-content:center"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div></div>`
+    :`<div class="err" style="font-size:13px">You have been eliminated. The survivors advance without you.</div>`}
+  </div>`;
+}
+
+// ── END ───────────────────────────────────────────────────────────────────────
+function rEnd(room){
+  const me=room.players.find(p=>p.id===ME.id);
+  const isDealer=room.dealerId===ME.id;
+  const dealer=room.players.find(p=>p.id===room.dealerId);
+  const dealerFound=!dealer?.alive;
+  const survivors=room.players.filter(p=>p.alive).map(p=>p.name).join(', ')||'—';
+  const tier=room.tier;
+  const tierSuffix={base:'',queen:' — Queen\'s Chamber',king:' — King\'s Chamber',joker:' — Joker\'s Keep'};
+  let title,sub,flavor,win;
+  if(room.winner==='champion'){win=true;title='CHAMPION';sub='The Borderlands are conquered';flavor='Every room. Every game. Every lie. You survived them all. The door at the end of the Joker\'s Keep opens to silence — and then to daylight. You are the last one standing.';}
+  else if(isDealer&&!dealerFound){win=true;title='FREEDOM';sub='The Dealer escapes';flavor='They never found you. Through every room, every vote, every accusation — you remained invisible. The door is yours.';}
+  else if(isDealer&&dealerFound){win=false;title='EXPOSED';sub='The Dealer was found';flavor='They saw through you in the end. You made it further than most. It wasn\'t enough.';}
+  else if(!isDealer&&dealerFound){win=true;title='CLEARED';sub='The Dealer identified';flavor='The right name was spoken. The game confirms it. Every life you spent to get here was worth it.';}
+  else{win=false;title='FAILED';sub='The Dealer survives'+tierSuffix[tier];flavor='The wrong vote. The wrong name. Somewhere the Dealer walks out of a room you will never see.';}
+  return`<div class="end fi">
+    ${rBoard(room)}
+    ${rLivesBar(room)}
+    <div class="end-main ${win?'win':'lose'} mt">${title}</div>
+    <div class="end-sub">${sub} · ${TIER_LABEL[tier]} · Room ${esc(RC)}</div>
+    <div class="end-flavor">${flavor}</div>
+    <div class="small mb">Survivors: ${esc(survivors)}</div>
+    ${!isDealer?`<div class="small mb">The Dealer was: <span style="color:var(--red)">${esc(dealer?.name||'?')}</span></div>`:''}
+    <button class="btn red" id="restartBtn">PLAY AGAIN</button>
+  </div>`;
+}
+
+// ── CHAT ─────────────────────────────────────────────────────────────────────
+function rChat(room){
+  const msgs=(room?.messages||[]).slice(-60);
+  const me=room?.players?.find(p=>p.id===ME.id);
+  const isSpec=me&&!me.alive;
+  return`<div class="box">
+    <div class="label">◈ Communications ${isSpec?'<span style="color:var(--red)">— READ ONLY (SPECTATOR)</span>':''}</div>
+    <div class="chat" id="chatBox">${msgs.map(m=>{
+      if(m.type==='sys')return`<div><span class="cm-s cm-who">◈</span><span class="cm-txt">${esc(m.text)}</span></div>`;
+      return`<div><span class="${m.authorId===ME.id?'cm-me':'cm-o'} cm-who">${esc(m.authorName)}</span><span class="cm-txt">${esc(m.text)}</span></div>`;
+    }).join('')}</div>
+    ${isSpec
+      ?`<div style="padding:9px 12px;background:var(--dark);border:1px solid var(--border);font-size:11px;color:var(--muted);letter-spacing:.1em">👁 ELIMINATED — SILENT OBSERVATION ONLY</div>`
+      :`<div class="row"><input class="inp" id="chatInp" placeholder="Say something..." maxlength="160" style="font-size:12px;padding:9px 12px"/><button class="btn" id="chatSend" style="padding:9px 16px;font-size:13px">SEND</button></div>`}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BIND ALL
+// ═══════════════════════════════════════════════════════════════════════════
+function bindAll(){
+  const q=id=>document.getElementById(id);
+  const on=(id,fn)=>{const el=q(id);if(el)el.onclick=fn;};
+  const onKey=(id,fn)=>{const el=q(id);if(el)el.onkeydown=e=>{if(e.key==='Enter')fn();};};
+
+  // Lobby
+  const doJoin=()=>joinRoom(q('nameInp')?.value||'',q('codeInp')?.value||'');
+  on('joinBtn',doJoin);onKey('nameInp',doJoin);
+
+  // Confession
+  on('confBtn',()=>submitConfession(q('confInp')?.value||''));
+
+  // Vote targets
+  document.querySelectorAll('[data-vtgt]').forEach(el=>{
+    el.onclick=()=>{if(!myVote){playVoteOpen();castVote(el.dataset.vtgt);}};
+  });
+
+  // Open votes
+  on('openVoteBtn',()=>{playVoteOpen();openVote(ROOM?.phase);});
+  on('openFinalVoteBtn',()=>{playVoteOpen();openVote(ROOM?.phase);});
+
+  // Advance from reveal
+  on('advanceBtn',async()=>{
+    const room=await loadRoom(RC);if(!room)return;
+    room._advanceAt=Date.now()-1;await saveRoom(room);
+    await advanceFromReveal(room);ROOM=room;render();
+  });
+
+  // Group puzzle
+  document.querySelectorAll('[data-pidx]').forEach(el=>{
+    el.onclick=()=>{if(myPuzzleAnswer===null)submitGroupAnswer(parseInt(el.dataset.pidx));};
+  });
+
+  // Solo puzzle
+  document.querySelectorAll('[data-solo]').forEach(el=>{
+    el.onclick=()=>{if(mySoloAnswer===null)submitSoloAnswer(parseInt(el.dataset.solo));};
+  });
+
+  // Chat
+  const doSend=async()=>{
+    const ci=q('chatInp');if(!ci?.value.trim())return;
+    const txt=ci.value;ci.value='';
+    await sendChat(txt);
+    const r=await loadRoom(RC);if(r){ROOM=r;render();}
+  };
+  on('chatSend',doSend);onKey('chatInp',doSend);
+
+  // Restart
+  on('restartBtn',()=>{
+    stopPoll();if(timerIv)clearInterval(timerIv);
+    ME.name='';RC='';ROOM=null;myVote=null;myConfession='';confLocked=false;
+    myPuzzleAnswer=null;mySoloPuzzle=null;mySoloAnswer=null;mySoloPuzzleLoading=false;
+    aiLock={};championOverlayShown=false;Object.assign(ME,{id:uid()});
+    render();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT — wait for page + Firebase to be fully ready
+// ═══════════════════════════════════════════════════════════════════════════
+window.addEventListener('load', function(){
+  render();
+});
+</script>
+</body>
+</html>
