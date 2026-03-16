@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BORDERLANDS</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;900&family=Bebas+Neue&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=UnifrakturMaguntia&display=swap');
+
+/* ═══════════════════════════════════════
+   ROOT VARS
+═══════════════════════════════════════ */
+:root {
+  /* Fonts */
+  --font-title: 'Cinzel Decorative', serif;
+  --font-heading: 'Cinzel', serif;
+  --font-ui: 'Bebas Neue', cursive;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-prose: 'Crimson Pro', serif;
+
+  --black:#040302; --dark:#0a0806; --surf:#0e0b07; --surf2:#131009;
+  --brd:#1e1810; --brd2:#2a2218;
+  --cream:#ede3ce; --muted:#6b6050; --ghost:#1a1206;
+  --red:#c0392b; --blood:#8b0000; --dimred:#3d0d08;
+  --gold:#c49a3a; --gold2:#e8c060; --dimgold:#3a2a08; --qbrd:#4a3a18;
+  --king:#2a5fa8; --king2:#5a9fde; --dimking:#0d1e38; --kbrd:#1a3060;
+  --joker:#9b2dc4; --joker2:#c44de8; --dimjoker:#2d0845; --jbrd:#5a1880;
+  --teal:#1a9c7a; --dimteal:#0d5040;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { min-height:100%; }
+
+/* ═══════════════════════════════════════
+   BODY — base + scanlines
+═══════════════════════════════════════ */
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px);
+}
+
+/* ═══════════════════════════════════════
+   BASE THEME — cold industrial concrete
+═══════════════════════════════════════ */
+body.tb {
+  background: #060503;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(192,57,43,.07) 0%, transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+}
+
+/* ═══════════════════════════════════════
+   QUEEN THEME — candlelit gold elegance
+═══════════════════════════════════════ */
+body.tq {
+  background: #0a0802;
+  background-image:
+    radial-gradient(ellipse at 20% 15%, rgba(196,154,58,.09) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 85%, rgba(196,154,58,.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(140,90,20,.04) 0%, transparent 60%);
+}
+body.tq::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 40px,
+    rgba(196,154,58,.008) 40px, rgba(196,154,58,.008) 80px
+  );
+}
+
+/* ═══════════════════════════════════════
+   KING THEME — cold stone authority
+═══════════════════════════════════════ */
+body.tk {
+  background: #020408;
+  background-image:
+    radial-gradient(ellipse at 50% 100%, rgba(42,95,168,.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 0% 0%, rgba(42,95,168,.05) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(42,95,168,.04) 0%, transparent 30%);
+}
+
+/* ═══════════════════════════════════════
+   JOKER THEME — pure chaos
+═══════════════════════════════════════ */
+body.tj {
+  background: #060208;
+  animation: jBodyShift 9s ease-in-out infinite alternate;
+}
+@keyframes jBodyShift {
+  0%   { background: #060208; }
+  25%  { background: #080208; }
+  50%  { background: #06020a; }
+  75%  { background: #080106; }
+  100% { background: #060208; }
+}
+body.tj::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(ellipse at 25% 35%, rgba(155,45,196,.14) 0%, transparent 40%),
+    radial-gradient(ellipse at 75% 65%, rgba(196,77,232,.09) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 10%, rgba(139,0,0,.07) 0%, transparent 35%);
+  animation: jBgDrift 7s ease-in-out infinite alternate;
+}
+@keyframes jBgDrift {
+  0%   { opacity:1; transform: scale(1); }
+  33%  { opacity:.8; transform: scale(1.05) translate(2%, -1%); }
+  66%  { opacity:1; transform: scale(.97) translate(-1%, 2%); }
+  100% { opacity:.9; transform: scale(1.02) translate(1%, 1%); }
+}
+
+#app { max-width:900px; margin:0 auto; padding:22px 14px 90px; position:relative; z-index:1; }
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.hdr { text-align:center; margin-bottom:28px; }
+.hdr-pre { font-family:var(--font-mono); font-size:8px; letter-spacing:.6em; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+.hdr-title {
+  font-family: var(--font-title);
+  font-size: clamp(32px, 8vw, 68px);
+  line-height:1; letter-spacing:.06em;
+  font-weight:900;
+}
+.hdr-title em { font-style:normal; }
+
+/* Base — harsh, slightly distressed */
+.tb .hdr-title { color:var(--cream); text-shadow: 2px 0 0 rgba(192,57,43,.25), -1px 0 0 rgba(192,57,43,.15); }
+.tb .hdr-title em { color:var(--red); text-shadow: 0 0 20px rgba(192,57,43,.4); }
+
+/* Queen — warm gold shimmer */
+.tq .hdr-title { color:var(--gold2); text-shadow: 0 0 40px rgba(196,154,58,.3), 0 0 80px rgba(196,154,58,.1); }
+.tq .hdr-title em {
+  background: linear-gradient(90deg, #a07820, var(--gold2), #e8d080, var(--gold2), #a07820);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: qShimmer 4s linear infinite;
+}
+@keyframes qShimmer { to { background-position: 200% center; } }
+
+/* King — cold steel blue */
+.tk .hdr-title { color:#c8d8f0; text-shadow: 0 0 30px rgba(42,95,168,.35); }
+.tk .hdr-title em { color:var(--king2); text-shadow: 0 0 20px rgba(90,159,222,.5), 0 0 40px rgba(42,95,168,.3); }
+
+/* Joker — glitching chaos */
+.tj .hdr-title {
+  color:var(--joker2);
+  text-shadow: 0 0 30px rgba(155,45,196,.7), 3px 2px 0 rgba(196,77,232,.3), -3px -2px 0 rgba(139,0,0,.35);
+  animation: jTitleGlitch 7s infinite;
+}
+.tj .hdr-title em { color:#e8a8ff; }
+@keyframes jTitleGlitch {
+  0%,89%,100% { text-shadow: 0 0 30px rgba(155,45,196,.7), 3px 2px 0 rgba(196,77,232,.3), -3px -2px 0 rgba(139,0,0,.35); transform: none; }
+  90%  { text-shadow: -6px 0 0 rgba(196,77,232,.9),  6px 0 0 rgba(139,0,0,.9), 0 0 40px rgba(155,45,196,.9); transform: skewX(-4deg) scaleY(1.02); }
+  91%  { text-shadow:  6px 0 0 rgba(196,77,232,.9), -6px 0 0 rgba(139,0,0,.9); transform: skewX(3deg); }
+  92%  { text-shadow: 0 0 60px rgba(155,45,196,1); transform: none; }
+  93%  { text-shadow: -3px 0 0 rgba(196,77,232,.6),  3px 0 0 rgba(139,0,0,.6); transform: skewX(-1deg); }
+  94%  { text-shadow: 0 0 30px rgba(155,45,196,.7); transform: none; }
+}
+
+.hdr-suits { display:flex; justify-content:center; gap:12px; margin-top:8px; font-size:17px; }
+.tb .hdr-suits span { opacity:.3; }
+.tb .hdr-suits .r { color:var(--red); opacity:.7; }
+.tq .hdr-suits span { color:var(--gold); opacity:.55; }
+.tk .hdr-suits span { color:var(--king2); opacity:.45; }
+.tj .hdr-suits span {
+  color:var(--joker2); opacity:.8;
+  animation: jSuitFlicker 5s infinite;
+  text-shadow: 0 0 6px var(--joker2);
+}
+.tj .hdr-suits span:nth-child(2) { animation-delay:.7s; }
+.tj .hdr-suits span:nth-child(3) { animation-delay:1.4s; }
+.tj .hdr-suits span:nth-child(4) { animation-delay:2.1s; }
+@keyframes jSuitFlicker {
+  0%,95%,100% { opacity:.8; }
+  96% { opacity:.15; text-shadow:none; }
+  97% { opacity:.9; text-shadow: 0 0 12px var(--joker2); }
+  98% { opacity:.4; }
+  99% { opacity:.8; }
+}
+
+.room-tag { font-size:9px; letter-spacing:.5em; color:var(--muted); margin-top:5px; text-align:center; }
+.tb .room-tag b { color:var(--red); }
+.tq .room-tag b { color:var(--gold); }
+.tk .room-tag b { color:var(--king2); }
+.tj .room-tag b { color:var(--joker2); animation: jTextFlicker 8s infinite; }
+@keyframes jTextFlicker {
+  0%,93%,100% { opacity:1; }
+  94% { opacity:.3; }
+  95% { opacity:1; }
+  97% { opacity:.5; }
+  98% { opacity:1; }
+}
+
+/* ═══════════════════════════════════════
+   TIER BANNERS
+═══════════════════════════════════════ */
+.tier-banner {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:10px 18px; margin-bottom:12px;
+  font-family:var(--font-heading); font-size:13px; letter-spacing:.12em; font-weight:600;
+  text-align:center; position:relative; overflow:hidden;
+}
+/* Queen — ornate gold */
+.tier-banner.tq {
+  border:1px solid var(--qbrd);
+  background: linear-gradient(90deg, transparent, rgba(196,154,58,.07), rgba(196,154,58,.04), transparent);
+  color: var(--gold2);
+}
+.tier-banner.tq::before, .tier-banner.tq::after {
+  content:'❧'; font-size:18px; color:var(--dimgold); opacity:.5;
+  position:absolute;
+}
+.tier-banner.tq::before { left:14px; }
+.tier-banner.tq::after  { right:14px; }
+
+/* King — heavy stone */
+.tier-banner.tk {
+  border:1px solid var(--kbrd);
+  border-top:2px solid rgba(42,95,168,.4);
+  background: linear-gradient(90deg, transparent, rgba(42,95,168,.08), transparent);
+  color: var(--king2); letter-spacing:.3em;
+}
+
+/* Joker — unstable flickering */
+.tier-banner.tj {
+  border:1px solid var(--jbrd);
+  color: var(--joker2);
+  background: linear-gradient(90deg, rgba(155,45,196,.06), rgba(196,77,232,.04), rgba(155,45,196,.06));
+  animation: jBannerChaos 5s infinite;
+  position:relative;
+}
+.tier-banner.tj::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent 0%, rgba(155,45,196,.08) 50%, transparent 100%);
+  animation: jBannerSweep 3s linear infinite;
+}
+@keyframes jBannerSweep { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
+@keyframes jBannerChaos {
+  0%,91%,100% { opacity:1; border-color:var(--jbrd); }
+  92% { opacity:.5; border-color:var(--joker2); box-shadow:0 0 15px rgba(155,45,196,.5); transform:skewX(.5deg); }
+  93% { opacity:1; transform:skewX(0); }
+  96% { opacity:.7; border-color:var(--joker2); }
+  97% { opacity:1; }
+}
+
+/* ═══════════════════════════════════════
+   SURVIVAL BOARD
+═══════════════════════════════════════ */
+.board { padding:14px 18px; margin-bottom:12px; position:relative; overflow:hidden; }
+
+.tb .board { background:var(--surf); border:1px solid var(--brd2); }
+.tb .board::before {
+  content:'SURVIVAL BOARD'; position:absolute; top:0; right:0;
+  background:var(--blood); color:var(--red);
+  font-family:var(--font-ui); font-size:11px; letter-spacing:.2em; padding:2px 9px;
+}
+
+.tq .board {
+  background: linear-gradient(135deg, #0c0904, rgba(58,42,8,.7));
+  border:1px solid var(--qbrd);
+  box-shadow: inset 0 0 40px rgba(196,154,58,.03);
+}
+.tq .board::before {
+  content:'SURVIVAL BOARD'; position:absolute; top:0; right:0;
+  background:var(--dimgold); color:var(--gold2);
+  font-family:'Bebas Neue',cursive; font-size:11px; letter-spacing:.2em; padding:2px 9px;
+}
+.tq .board::after {
+  content:''; position:absolute; top:0; left:0; bottom:0; width:1px;
+  background: linear-gradient(180deg, transparent, var(--gold), transparent);
+  opacity:.3;
+}
+
+.tk .board {
+  background: linear-gradient(135deg, #020408, rgba(13,30,56,.8));
+  border:1px solid var(--kbrd);
+  border-left: 3px solid rgba(42,95,168,.3);
+}
+.tk .board::before {
+  content:'SURVIVAL BOARD'; position:absolute; top:0; right:0;
+  background:var(--dimking); color:var(--king2);
+  font-family:'Bebas Neue',cursive; font-size:11px; letter-spacing:.2em; padding:2px 9px;
+}
+
+.tj .board {
+  background: linear-gradient(135deg, #060208, rgba(45,8,69,.7));
+  border:1px solid var(--jbrd);
+  animation: jBoardPulse 6s ease-in-out infinite;
+}
+.tj .board::before {
+  content:'SURVIVAL BOARD'; position:absolute; top:0; right:0;
+  background:var(--dimjoker); color:var(--joker2);
+  font-family:'Bebas Neue',cursive; font-size:11px; letter-spacing:.2em; padding:2px 9px;
+  animation: jTextFlicker 9s infinite;
+}
+@keyframes jBoardPulse {
+  0%,100% { box-shadow:none; }
+  40% { box-shadow: 0 0 25px rgba(155,45,196,.08), inset 0 0 15px rgba(155,45,196,.04); }
+  80% { box-shadow: 0 0 15px rgba(196,77,232,.06); }
+}
+
+.bnames { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.bn { font-family: var(--font-heading); font-size:18px; letter-spacing:.06em; font-weight:600; transition:all .3s; }
+.bn.me { font-size:20px; font-weight:900; }
+.tb .bn.me { color:var(--teal); text-shadow: 0 0 10px rgba(26,156,122,.3); }
+.tq .bn.me { color:var(--gold2); text-shadow: 0 0 12px rgba(196,154,58,.4); }
+.tk .bn.me { color:var(--king2); text-shadow: 0 0 10px rgba(90,159,222,.4); }
+.tj .bn.me { color:var(--joker2); text-shadow: 0 0 14px rgba(155,45,196,.5); animation: jNamePulse 3s infinite; }
+@keyframes jNamePulse { 0%,100%{text-shadow:0 0 14px rgba(155,45,196,.5)} 50%{text-shadow:0 0 22px rgba(196,77,232,.8)} }
+.bn.dead {
+  color:var(--ghost)!important; text-shadow:none!important;
+  text-decoration:line-through; text-decoration-color:var(--red);
+  text-decoration-thickness:2px; opacity:.18; font-size:16px;
+}
+.bn.dying { animation:dyAnim 1.5s forwards; }
+@keyframes dyAnim {
+  0%   { color:var(--red); text-shadow:0 0 24px var(--red),0 0 50px rgba(255,0,0,.5); transform:scale(1.12); }
+  20%  { color:#fff; text-shadow:0 0 50px #fff; transform:scale(1.18) skewX(-2deg); }
+  50%  { color:var(--red); opacity:.7; transform:scale(.88); }
+  80%  { opacity:.25; transform:scale(.9); }
+  100% { color:var(--ghost); opacity:.16; text-decoration:line-through; }
+}
+.bn.hurt { animation:hurtAnim 1s; }
+@keyframes hurtAnim {
+  0%,100%{transform:none;}
+  20%{transform:translateX(-4px);}
+  40%{transform:translateX(4px);color:var(--red);}
+  60%{transform:translateX(-2px);}
+  80%{transform:translateX(2px);}
+}
+
+/* ═══════════════════════════════════════
+   LIVES BAR — glowing playing card suits
+═══════════════════════════════════════ */
+.lives-bar { display:flex; align-items:center; gap:8px; padding:10px 16px; margin-bottom:11px; }
+.tb .lives-bar { background:var(--surf); border:1px solid var(--brd2); }
+.tq .lives-bar { background:linear-gradient(90deg,rgba(58,42,8,.4),rgba(58,42,8,.2)); border:1px solid var(--qbrd); }
+.tk .lives-bar { background:linear-gradient(90deg,rgba(13,30,56,.4),rgba(13,30,56,.2)); border:1px solid var(--kbrd); }
+.tj .lives-bar { background:linear-gradient(90deg,rgba(45,8,69,.4),rgba(45,8,69,.2)); border:1px solid var(--jbrd); }
+.lives-lbl { font-size:8px; letter-spacing:.4em; color:var(--muted); text-transform:uppercase; margin-right:4px; }
+.lc {
+  font-size:22px; transition:all .3s;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px;
+  border:1px solid transparent; border-radius:3px;
+}
+/* Alive — glowing suits */
+.lc.alive-club   { color:#5dde8a; border-color:rgba(93,222,138,.2); text-shadow:0 0 10px rgba(93,222,138,.6); }
+.lc.alive-diamond{ color:#f05050; border-color:rgba(240,80,80,.2);  text-shadow:0 0 10px rgba(240,80,80,.6); }
+.lc.alive-heart  { color:#f05050; border-color:rgba(240,80,80,.2);  text-shadow:0 0 10px rgba(240,80,80,.6); }
+.lc.alive-spade  { color:#90b8f8; border-color:rgba(144,184,248,.2);text-shadow:0 0 10px rgba(144,184,248,.5); }
+/* Lost — dark scratched */
+.lc.lost { color:rgba(20,14,8,.9)!important; border-color:rgba(20,14,8,.7)!important; text-shadow:none!important; opacity:.3; }
+.lc.losing { animation:loseL .9s forwards; }
+@keyframes loseL {
+  0%   { transform:scale(1.6) rotate(-15deg); filter:brightness(4); }
+  25%  { transform:scale(.55) rotate(25deg); opacity:.5; }
+  60%  { transform:scale(1.1) rotate(-6deg); opacity:.2; }
+  100% { transform:scale(1); opacity:.28; color:rgba(20,14,8,.9); }
+}
+.lives-count { margin-left:auto; font-family:'Bebas Neue',cursive; font-size:13px; color:var(--muted); }
+
+/* ═══════════════════════════════════════
+   BOXES
+═══════════════════════════════════════ */
+.box { padding:18px 20px; margin-bottom:10px; position:relative; }
+
+.tb .box { background:var(--surf); border:1px solid var(--brd); border-left:2px solid rgba(192,57,43,.25); }
+.tq .box {
+  background:linear-gradient(135deg, rgba(12,9,4,.97), rgba(50,36,8,.5));
+  border:1px solid var(--qbrd);
+}
+.tq .box::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(196,154,58,.5), transparent);
+}
+.tq .box::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(196,154,58,.2), transparent);
+}
+.tk .box {
+  background:linear-gradient(135deg, rgba(2,4,8,.98), rgba(13,26,50,.5));
+  border:1px solid var(--kbrd);
+  border-left:3px solid rgba(42,95,168,.35);
+}
+.tj .box {
+  background:linear-gradient(135deg, rgba(6,2,8,.98), rgba(35,6,52,.55));
+  border:1px solid var(--jbrd);
+}
+.tj .box::before {
+  content:''; position:absolute; inset:-1px;
+  background:linear-gradient(45deg, var(--jbrd), transparent, transparent, var(--jbrd));
+  opacity:.25; z-index:-1;
+  animation:jBoxCorner 5s linear infinite;
+}
+@keyframes jBoxCorner { 0%,100%{opacity:.2} 50%{opacity:.45} }
+
+.btag { position:absolute; top:-1px; left:15px; font-family:'Bebas Neue',cursive; font-size:10px; letter-spacing:.2em; padding:2px 8px; }
+.tb-tag { background:var(--red); color:#fff; }
+.tq-tag { background:var(--dimgold); color:var(--gold2); }
+.tk-tag { background:var(--dimking); color:var(--king2); }
+.tj-tag { background:var(--dimjoker); color:var(--joker2); animation:jTextFlicker 11s infinite; }
+.tg-tag { background:var(--dimgold); color:var(--gold); }
+
+/* ═══════════════════════════════════════
+   RULES CARD
+═══════════════════════════════════════ */
+.rules-card {
+  position:fixed; inset:0; z-index:9990;
+  display:flex; align-items:center; justify-content:center; padding:18px;
+  animation:rcIn .4s ease;
+}
+.tb .rules-card { background:rgba(4,3,2,.97); }
+.tq .rules-card { background:rgba(10,8,2,.97); }
+.tk .rules-card { background:rgba(2,4,8,.97); }
+.tj .rules-card { background:rgba(5,1,7,.97); animation:jCardBg 6s infinite; }
+@keyframes jCardBg {
+  0%,100%{background:rgba(5,1,7,.97)}
+  33%{background:rgba(7,1,9,.97)}
+  66%{background:rgba(4,1,6,.97)}
+}
+@keyframes rcIn { from{opacity:0} to{opacity:1} }
+.rules-inner { max-width:480px; width:100%; text-align:center; }
+.ri-icon { font-size:54px; margin-bottom:10px; animation:riFloat 2.5s ease-in-out infinite; }
+@keyframes riFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+.tj .ri-icon { animation:riFloat 2.5s ease-in-out infinite, jIconSpin 15s linear infinite; }
+@keyframes jIconSpin { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+.ri-title { font-family:var(--font-title); font-size:26px; letter-spacing:.04em; font-weight:700; margin-bottom:4px; }
+.tb .ri-title { color:var(--red); }
+.tq .ri-title { color:var(--gold2); }
+.tk .ri-title { color:var(--king2); }
+.tj .ri-title { color:var(--joker2); animation:jTitleGlitch 6s infinite; }
+.ri-sub { font-size:9px; letter-spacing:.4em; color:var(--muted); text-transform:uppercase; margin-bottom:14px; }
+.ri-body { padding:16px 18px; text-align:left; margin-bottom:12px; }
+.tb .ri-body { background:var(--surf); border:1px solid var(--brd2); border-left:3px solid var(--red); }
+.tq .ri-body { background:rgba(50,36,8,.3); border:1px solid var(--qbrd); border-left:3px solid var(--gold); }
+.tk .ri-body { background:rgba(13,26,50,.3); border:1px solid var(--kbrd); border-left:3px solid var(--king2); }
+.tj .ri-body { background:rgba(35,6,52,.3); border:1px solid var(--jbrd); border-left:3px solid var(--joker2); animation:jBoxCorner 4s infinite; }
+.ri-inst { font-family:'Crimson Pro',serif; font-size:15px; font-style:italic; color:var(--cream); margin-bottom:9px; padding-bottom:9px; }
+.tb .ri-inst { border-bottom:1px solid var(--brd); }
+.tq .ri-inst { border-bottom:1px solid var(--qbrd); font-family:'Crimson Pro',serif; }
+.tk .ri-inst { border-bottom:1px solid var(--kbrd); }
+.tj .ri-inst { border-bottom:1px solid var(--jbrd); }
+.ri-rule { font-size:11px; color:var(--muted); padding:3px 0; letter-spacing:.02em; }
+.ri-rule .err { color:var(--red); font-weight:700; }
+.ri-rule .ok  { color:var(--teal); font-weight:700; }
+.ri-rule .hl  { color:var(--gold); }
+.ri-count { font-family:'Bebas Neue',cursive; font-size:58px; animation:rcPulse .9s infinite; }
+.tb .ri-count{color:var(--red);} .tq .ri-count{color:var(--gold);} .tk .ri-count{color:var(--king2);} .tj .ri-count{color:var(--joker2);}
+@keyframes rcPulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+.ri-skip { font-size:10px; letter-spacing:.3em; color:var(--muted); cursor:pointer; margin-top:5px; }
+.ri-skip:hover { color:var(--cream); }
+
+/* ═══════════════════════════════════════
+   STATUS STRIP
+═══════════════════════════════════════ */
+.strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-bottom:10px; }
+.tb .strip{background:var(--brd);border:1px solid var(--brd);}
+.tq .strip{background:var(--qbrd);border:1px solid var(--qbrd);}
+.tk .strip{background:var(--kbrd);border:1px solid var(--kbrd);}
+.tj .strip{background:var(--jbrd);border:1px solid var(--jbrd);}
+.sc { padding:7px 10px; }
+.tb .sc{background:var(--dark);}
+.tq .sc{background:#0c0902;}
+.tk .sc{background:#020408;}
+.tj .sc{background:#060208;}
+.sc-l { font-size:8px; letter-spacing:.35em; color:var(--muted); text-transform:uppercase; }
+.sc-v { font-size:12px; font-weight:700; margin-top:2px; }
+.sc-v.g{color:var(--teal);} .sc-v.r{color:var(--red);} .sc-v.o{color:var(--gold);}
+.sc-v.sq{color:var(--gold2);} .sc-v.sk{color:var(--king2);} .sc-v.sj{color:var(--joker2);}
+
+/* ═══════════════════════════════════════
+   PHASE HEADER
+═══════════════════════════════════════ */
+.phdr { display:flex; align-items:center; gap:10px; padding:11px 15px; margin-bottom:10px; }
+.tb .phdr { background:var(--surf2); border:1px solid var(--brd2); }
+.tq .phdr { background:rgba(50,36,8,.2); border:1px solid var(--qbrd); border-bottom:2px solid var(--dimgold); }
+.tk .phdr { background:rgba(13,26,50,.35); border:1px solid var(--kbrd); border-bottom:2px solid var(--dimking); }
+.tj .phdr { background:rgba(35,6,52,.3); border:1px solid var(--jbrd); animation:jBannerChaos 8s infinite; }
+.phdr-num { font-family:'Bebas Neue',cursive; font-size:38px; line-height:1; min-width:28px; }
+.tb .phdr-num{color:var(--red);} .tq .phdr-num{color:var(--gold);} .tk .phdr-num{color:var(--king2);}
+.tj .phdr-num { color:var(--joker2); animation:jNumFlicker 5s infinite; }
+@keyframes jNumFlicker {
+  0%,91%,100%{opacity:1}
+  92%{opacity:.2; transform:translateX(2px);}
+  93%{opacity:1; transform:none;}
+  95%{opacity:.6; transform:translateX(-1px);}
+  96%{opacity:1; transform:none;}
+}
+.phdr-name { font-family: var(--font-heading); font-size:15px; letter-spacing:.08em; font-weight:600; }
+.phdr-sub { font-size:9px; color:var(--muted); letter-spacing:.06em; margin-top:1px; }
+.phdr-chip { margin-left:auto; padding:3px 10px; font-family:'Bebas Neue',cursive; font-size:12px; letter-spacing:.1em; white-space:nowrap; }
+.tb .phdr-chip{background:var(--dark);border:1px solid var(--brd2);color:var(--red);}
+.tq .phdr-chip{background:rgba(50,36,8,.4);border:1px solid var(--qbrd);color:var(--gold);}
+.tk .phdr-chip{background:rgba(13,26,50,.5);border:1px solid var(--kbrd);color:var(--king2);}
+.tj .phdr-chip{background:rgba(35,6,52,.5);border:1px solid var(--jbrd);color:var(--joker2);animation:jBtnPulse 3s infinite;}
+
+/* ═══════════════════════════════════════
+   NARRATION
+═══════════════════════════════════════ */
+.narr { padding:10px 14px; margin:9px 0; }
+.tb .narr { border-left:3px solid var(--red); background:rgba(192,57,43,.04); }
+.tq .narr { border-left:3px solid var(--gold); background:rgba(196,154,58,.05); }
+.tk .narr { border-left:3px solid var(--king); background:rgba(42,95,168,.05); }
+.tj .narr { border-left:3px solid var(--joker2); background:rgba(155,45,196,.06); animation:jNarrPulse 5s infinite; }
+@keyframes jNarrPulse { 0%,100%{border-left-color:var(--joker2)} 50%{border-left-color:var(--joker);box-shadow:-4px 0 12px rgba(155,45,196,.2)} }
+.narr-lbl { font-size:8px; letter-spacing:.4em; text-transform:uppercase; margin-bottom:4px; }
+.tb .narr-lbl{color:var(--red);} .tq .narr-lbl{color:var(--gold);} .tk .narr-lbl{color:var(--king2);} .tj .narr-lbl{color:var(--joker2);}
+.tq .narr .prose { font-family:'Crimson Pro',serif; font-size:14px; font-style:italic; }
+
+/* ═══════════════════════════════════════
+   CLUE TRACKER
+═══════════════════════════════════════ */
+.clue-tracker { padding:9px 12px; margin:8px 0; }
+.tb .clue-tracker,.tq .clue-tracker,.tk .clue-tracker { background:var(--dark); border:1px solid rgba(155,45,196,.25); }
+.tj .clue-tracker { background:rgba(35,6,52,.4); border:1px solid rgba(155,45,196,.4); animation:jClueFlicker 8s infinite; }
+@keyframes jClueFlicker { 0%,88%,100%{opacity:1} 89%{opacity:.4} 91%{opacity:1} 94%{opacity:.7} 96%{opacity:1} }
+.ct-lbl { font-size:8px; letter-spacing:.4em; color:#9b59b6; text-transform:uppercase; margin-bottom:5px; }
+.ct-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.ct-chip { padding:3px 9px; font-size:11px; border:1px solid; }
+.ct-chip.rev { border-color:#9b59b6; color:var(--cream); }
+.ct-chip.hid { border-color:var(--brd2); color:var(--muted); }
+
+/* ═══════════════════════════════════════
+   INPUTS & BUTTONS
+═══════════════════════════════════════ */
+.inp {
+  width:100%; color:var(--cream); padding:10px 12px;
+  font-family:'Share Tech Mono',monospace; font-size:13px; outline:none;
+  border:1px solid; transition:border-color .2s, box-shadow .2s;
+}
+.tb .inp{background:rgba(8,6,4,.95);border-color:var(--brd);}
+.tb .inp:focus{border-color:var(--red);}
+.tq .inp{background:rgba(10,8,2,.95);border-color:var(--qbrd);}
+.tq .inp:focus{border-color:var(--gold);box-shadow:0 0 8px rgba(196,154,58,.15);}
+.tk .inp{background:rgba(2,4,8,.95);border-color:var(--kbrd);}
+.tk .inp:focus{border-color:var(--king2);box-shadow:0 0 8px rgba(42,95,168,.2);}
+.tj .inp{background:rgba(5,1,7,.95);border-color:var(--jbrd);}
+.tj .inp:focus{border-color:var(--joker2);box-shadow:0 0 12px rgba(155,45,196,.25);}
+.inp::placeholder{color:var(--muted);opacity:.4;}
+textarea.inp{resize:vertical;min-height:62px;line-height:1.6;}
+.row{display:flex;}.row .inp{flex:1;border-right:none;}
+
+.btn { background:transparent; color:var(--cream); padding:9px 17px; font-family:'Bebas Neue',cursive; font-size:13px; letter-spacing:.2em; cursor:pointer; transition:all .15s; white-space:nowrap; border:1px solid var(--muted); }
+.btn:hover{border-color:var(--cream);}
+.btn.bred{background:var(--red);border-color:var(--red);color:#fff;}
+.btn.bred:hover{background:var(--blood);box-shadow:0 0 14px rgba(192,57,43,.5);}
+.btn.bgold{background:var(--dimgold);border-color:var(--gold);color:var(--gold2);}
+.btn.bgold:hover{box-shadow:0 0 12px rgba(196,154,58,.35);}
+.btn.bteal{background:var(--dimteal);border-color:var(--teal);color:var(--teal);}
+.btn.bqueen{background:var(--dimgold);border-color:var(--gold);color:var(--gold2);}
+.btn.bqueen:hover{box-shadow:0 0 12px rgba(196,154,58,.35);}
+.btn.bking{background:var(--dimking);border-color:var(--king2);color:var(--king2);}
+.btn.bking:hover{box-shadow:0 0 12px rgba(42,95,168,.4);}
+.btn.bjoker{background:var(--dimjoker);border-color:var(--joker2);color:var(--joker2);animation:jBtnPulse 2.5s infinite;}
+.btn.bjoker:hover{box-shadow:0 0 16px rgba(155,45,196,.6);animation:none;}
+@keyframes jBtnPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(155,45,196,.35)}}
+.btn:disabled{opacity:.26;cursor:not-allowed;pointer-events:none;}
+
+/* ═══════════════════════════════════════
+   PLAYER GRID
+═══════════════════════════════════════ */
+.pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(115px,1fr)); gap:5px; margin-top:8px; }
+.pc { padding:8px 10px; transition:all .15s; border:1px solid; }
+.tb .pc{background:var(--dark);border-color:var(--brd);}
+.tq .pc{background:rgba(10,8,2,.8);border-color:var(--qbrd);}
+.tk .pc{background:rgba(2,4,8,.8);border-color:var(--kbrd);}
+.tj .pc{background:rgba(5,1,7,.8);border-color:var(--jbrd);}
+.pc.me{border-color:var(--teal)!important;}
+.pc.dead{opacity:.2;filter:grayscale(1);}
+.pc.sel{border-color:var(--red)!important;background:rgba(192,57,43,.07)!important;}
+.pc.sel .pc-n{color:var(--red);}
+.pc.click{cursor:pointer;}
+.tb .pc.click:hover{border-color:var(--red);background:rgba(192,57,43,.05);}
+.tq .pc.click:hover{border-color:var(--gold2);background:rgba(196,154,58,.06);}
+.tk .pc.click:hover{border-color:var(--king2);background:rgba(42,95,168,.06);}
+.tj .pc.click:hover{border-color:var(--joker2);background:rgba(155,45,196,.1);box-shadow:0 0 10px rgba(155,45,196,.2);}
+.pc-i{font-size:8px;letter-spacing:.3em;color:var(--muted);}
+.pc-n{font-family:var(--font-heading);font-size:14px;letter-spacing:.04em;font-weight:600;margin-top:1px;}
+.pc.me .pc-n{color:var(--teal);}
+.pc-lv{font-size:11px;margin-top:2px;letter-spacing:1px;}
+
+/* ═══════════════════════════════════════
+   TIMER
+═══════════════════════════════════════ */
+.tw{margin:6px 0;}
+.tw-top{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.3em;color:var(--muted);margin-bottom:3px;}
+.tw-bg{height:3px;background:var(--brd2);}
+.tw-fill{height:100%;transition:width 1s linear;}
+.tw-fill.tb{background:linear-gradient(90deg,var(--blood),var(--red));}
+.tw-fill.tq{background:linear-gradient(90deg,var(--dimgold),var(--gold2));}
+.tw-fill.tk{background:linear-gradient(90deg,var(--dimking),var(--king2));}
+.tw-fill.tj{background:linear-gradient(90deg,var(--dimjoker),var(--joker2));animation:jTimerFlicker 1.5s infinite;}
+@keyframes jTimerFlicker{0%,100%{opacity:1;filter:none}50%{opacity:.75;filter:brightness(1.5)}}
+
+/* ═══════════════════════════════════════
+   GAME ELEMENTS
+═══════════════════════════════════════ */
+.conf-item{padding:8px 0;border-bottom:1px solid;}
+.tb .conf-item{border-color:var(--brd);}
+.tq .conf-item{border-color:var(--qbrd);}
+.conf-auth{font-size:9px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:3px;}
+.tb .conf-auth{color:var(--red);}
+.tq .conf-auth{color:var(--gold);}
+.tk .conf-auth{color:var(--king2);}
+.conf-text{font-family:'Crimson Pro',serif;font-size:14px;line-height:1.7;font-style:italic;}
+.conf-text.blank{color:var(--muted);font-style:normal;letter-spacing:.1em;}
+
+.scale-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.scale-opt{padding:18px 10px;text-align:center;cursor:pointer;transition:all .2s;border:2px solid;}
+.tb .scale-opt{background:rgba(8,6,4,.95);border-color:var(--brd);}
+.tb .scale-opt:hover,.tb .scale-opt.chose{border-color:var(--red);background:rgba(192,57,43,.07);}
+.tq .scale-opt{background:rgba(10,8,2,.95);border-color:var(--qbrd);}
+.tq .scale-opt:hover,.tq .scale-opt.chose{border-color:var(--gold2);background:rgba(196,154,58,.07);}
+.scale-opt.minority{border-color:var(--red)!important;background:rgba(192,57,43,.06)!important;}
+.so-lbl{font-family:var(--font-heading);font-size:22px;letter-spacing:.04em;font-weight:900;}
+.so-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+
+.my-role{padding:14px;text-align:center;margin:9px 0;}
+.tb .my-role,.tq .my-role{background:rgba(50,36,8,.3);border:2px solid var(--dimgold);}
+.tk .my-role{background:rgba(13,26,50,.4);border:2px solid var(--kbrd);}
+.tj .my-role{background:rgba(35,6,52,.4);border:2px solid var(--jbrd);animation:jBoardPulse 4s infinite;}
+.my-role-icon{font-size:38px;margin-bottom:5px;}
+.my-role-name{font-family:var(--font-heading);font-size:18px;letter-spacing:.06em;font-weight:700;}
+.tb .my-role-name,.tq .my-role-name{color:var(--gold2);}
+.tk .my-role-name{color:var(--king2);}
+.tj .my-role-name{color:var(--joker2);animation:jTextFlicker 7s infinite;}
+.my-role-desc{font-family:'Crimson Pro',serif;font-size:12px;font-style:italic;color:var(--muted);margin-top:3px;}
+
+.speed-q{padding:16px;text-align:center;margin:9px 0;border:2px solid;}
+.tb .speed-q{background:rgba(8,6,4,.95);border-color:var(--brd2);}
+.tq .speed-q{background:rgba(10,8,2,.95);border-color:var(--qbrd);}
+.tk .speed-q{background:rgba(2,4,8,.95);border-color:var(--kbrd);}
+.tj .speed-q{background:rgba(5,1,7,.95);border-color:var(--jbrd);}
+.speed-qn{font-size:8px;letter-spacing:.4em;color:var(--muted);margin-bottom:7px;text-transform:uppercase;}
+.speed-qt{font-family:'Crimson Pro',serif;font-size:15px;line-height:1.7;font-style:italic;}
+
+.chain-disp{padding:11px;min-height:48px;margin:7px 0;line-height:1.8;border:1px solid;}
+.tb .chain-disp{background:rgba(8,6,4,.95);border-color:var(--brd2);}
+.tq .chain-disp{background:rgba(10,8,2,.95);border-color:var(--qbrd);}
+.tk .chain-disp{background:rgba(2,4,8,.95);border-color:var(--kbrd);}
+.tj .chain-disp{background:rgba(5,1,7,.95);border-color:var(--jbrd);}
+.cw{font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:.08em;}
+.cw.clue{color:var(--gold);text-decoration:underline;text-decoration-color:var(--dimgold);}
+.carr{color:var(--muted);font-size:10px;margin:0 2px;}
+
+.trib-item{padding:11px 13px;margin:5px 0;border:1px solid;}
+.tk .trib-item,.tb .trib-item{background:rgba(2,4,8,.85);border-color:var(--kbrd);}
+.trib-name{font-size:9px;letter-spacing:.3em;margin-bottom:3px;}
+.tb .trib-name,.tk .trib-name{color:var(--king2);}
+.trib-acc{font-family:'Crimson Pro',serif;font-size:12px;font-style:italic;color:var(--muted);margin-bottom:5px;}
+.trib-def{font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;}
+
+.cipher-code{
+  font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:.3em;
+  text-align:center;padding:16px;margin:9px 0;word-break:break-all;
+  background:rgba(2,4,8,.95);border:1px solid var(--kbrd);
+  color:var(--king2);text-shadow:0 0 12px rgba(42,95,168,.5);
+}
+
+.imp-stmt{padding:10px 12px;margin:5px 0;cursor:pointer;transition:all .15s;border:1px solid;}
+.tb .imp-stmt,.tk .imp-stmt{background:rgba(2,4,8,.8);border-color:var(--kbrd);}
+.imp-stmt:hover{border-color:var(--king2)!important;}
+.imp-stmt.chosen{border-color:var(--teal)!important;background:rgba(26,156,122,.05)!important;}
+.imp-stmt.correct{border-color:var(--teal)!important;}
+.imp-stmt.wrong{border-color:var(--red)!important;}
+.imp-num{font-family:'Bebas Neue',cursive;font-size:14px;color:var(--king2);margin-right:6px;}
+.imp-text{font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;font-style:italic;}
+
+.fq-clues{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:9px 0;}
+.fq-clue{padding:4px 11px;font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:.1em;border:1px solid var(--dimgold);color:var(--gold);}
+
+/* Roulette */
+.rchips{display:flex;justify-content:center;gap:12px;margin:13px 0;flex-wrap:wrap;}
+.rchip{
+  width:62px;height:62px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;border:2px solid;transition:all .25s;font-family:'Bebas Neue',cursive;
+}
+.rchip:hover,.rchip.chosen{transform:scale(1.16);box-shadow:0 0 20px currentColor;}
+.rchip.c1{border-color:var(--teal);color:var(--teal);}
+.rchip.c2{border-color:var(--gold);color:var(--gold);}
+.rchip.c3{border-color:var(--red);color:var(--red);}
+.rchip.ca{border-color:var(--joker2);color:var(--joker2);animation:jChipSpin 3s infinite;}
+@keyframes jChipSpin{
+  0%,100%{box-shadow:none;border-color:var(--joker2);}
+  25%{box-shadow:0 0 12px var(--joker2);}
+  50%{border-color:var(--joker);box-shadow:0 0 18px var(--joker);}
+  75%{box-shadow:0 0 8px var(--joker2);}
+}
+
+/* Last Supper */
+.cup-anim{
+  text-align:center;font-size:52px;padding:12px;
+  animation:cupFloat 2.5s ease-in-out infinite;
+  filter:drop-shadow(0 0 14px rgba(155,45,196,.5));
+}
+@keyframes cupFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+.cup-turn{
+  text-align:center;padding:13px;margin:9px 0;
+  border:2px solid var(--jbrd);background:rgba(35,6,52,.35);
+  animation:jCupGlow 3s ease-in-out infinite;
+}
+@keyframes jCupGlow{
+  0%,100%{border-color:var(--jbrd);box-shadow:none;}
+  50%{border-color:var(--joker2);box-shadow:0 0 18px rgba(155,45,196,.25),inset 0 0 18px rgba(155,45,196,.06);}
+}
+.cup-who{font-family:var(--font-heading);font-size:22px;font-weight:700;color:var(--joker2);}
+
+/* Execution */
+.exec-box{
+  padding:16px;text-align:center;margin:9px 0;
+  background:rgba(35,6,52,.35);border:2px solid var(--jbrd);
+  animation:jExecPulse 3s ease-in-out infinite;
+}
+@keyframes jExecPulse{
+  0%,100%{border-color:var(--jbrd);box-shadow:none;}
+  33%{border-color:var(--joker2);box-shadow:0 0 24px rgba(155,45,196,.2),inset 0 0 24px rgba(155,45,196,.06);}
+  66%{border-color:var(--joker);box-shadow:0 0 16px rgba(155,45,196,.1);}
+}
+
+/* ═══════════════════════════════════════
+   CHAMPION OVERLAY
+═══════════════════════════════════════ */
+#champOverlay{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:radial-gradient(ellipse at center,rgba(40,6,62,.99) 0%,rgba(4,2,6,1) 70%);
+  flex-direction:column;align-items:center;justify-content:center;text-align:center;
+}
+#champOverlay.show{display:flex;animation:coIn .4s ease;}
+@keyframes coIn{from{opacity:0}to{opacity:1}}
+.co-pre{font-size:9px;letter-spacing:.8em;color:var(--joker2);text-transform:uppercase;margin-bottom:12px;animation:coFd 4.5s forwards;text-shadow:0 0 20px rgba(155,45,196,.6);}
+.co-joker{font-size:68px;margin-bottom:8px;animation:coSpin 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 0 22px rgba(155,45,196,.9));}
+@keyframes coSpin{from{transform:rotate(-12deg) scale(.91)}to{transform:rotate(12deg) scale(1.09)}}
+.co-name{
+  font-family:var(--font-title);font-size:clamp(38px,10vw,90px);
+  letter-spacing:.1em;line-height:.9;color:var(--joker2);
+  animation:coNm 4.5s forwards;
+  text-shadow:0 0 40px var(--joker),0 0 80px var(--joker2),0 0 120px rgba(155,45,196,.5);
+}
+@keyframes coNm{
+  0%{opacity:0;transform:scale(.4) translateY(28px);letter-spacing:.04em;}
+  18%{opacity:1;transform:scale(1.09) translateY(-4px);letter-spacing:.16em;}
+  75%{opacity:1;transform:scale(1);letter-spacing:.1em;}
+  94%{opacity:1;}100%{opacity:0;transform:scale(1.04);}
+}
+.co-sub{font-size:10px;letter-spacing:.5em;color:var(--muted);margin-top:14px;text-transform:uppercase;animation:coFd 4.5s forwards;}
+.co-suits{font-size:30px;margin-top:12px;letter-spacing:.18em;animation:coFd 4.5s forwards;color:var(--joker2);text-shadow:0 0 18px rgba(155,45,196,.7);}
+@keyframes coFd{0%{opacity:0}15%{opacity:1}82%{opacity:1}100%{opacity:0}}
+
+/* ═══════════════════════════════════════
+   SPEC BANNER
+═══════════════════════════════════════ */
+.spec-banner{
+  background:repeating-linear-gradient(45deg,var(--dimred),var(--dimred) 10px,var(--dark) 10px,var(--dark) 20px);
+  border:1px solid var(--dimred);padding:7px 13px;margin-bottom:10px;
+  font-family:'Bebas Neue',cursive;font-size:12px;letter-spacing:.2em;color:var(--red);text-align:center;
+}
+
+/* ═══════════════════════════════════════
+   CHAT
+═══════════════════════════════════════ */
+.chat-box{height:126px;overflow-y:auto;padding:8px 10px;font-size:11px;line-height:1.7;margin-bottom:6px;scrollbar-width:thin;}
+.tb .chat-box{background:var(--dark);border:1px solid var(--brd);scrollbar-color:var(--brd) transparent;}
+.tq .chat-box{background:rgba(10,8,2,.9);border:1px solid var(--qbrd);scrollbar-color:var(--qbrd) transparent;}
+.tk .chat-box{background:rgba(2,4,8,.9);border:1px solid var(--kbrd);scrollbar-color:var(--kbrd) transparent;}
+.tj .chat-box{background:rgba(5,1,7,.9);border:1px solid var(--jbrd);scrollbar-color:var(--jbrd) transparent;}
+.cm-s{color:var(--red);}.cm-me{color:var(--teal);}
+.tb .cm-o{color:var(--gold);}.tq .cm-o{color:var(--gold2);}.tk .cm-o{color:var(--king2);}.tj .cm-o{color:var(--joker2);}
+.cm-who{margin-right:6px;font-weight:700;}.cm-txt{color:var(--cream);}
+
+/* ═══════════════════════════════════════
+   ADVANCING / END
+═══════════════════════════════════════ */
+.adv-screen{text-align:center;padding:44px 18px;}
+.adv-icon{font-size:64px;margin-bottom:9px;animation:adFloat 2s ease-in-out infinite;}
+@keyframes adFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.adv-title{font-family:var(--font-heading);font-size:44px;letter-spacing:.04em;font-weight:900;margin-bottom:5px;}
+.adv-flavor{font-family:'Crimson Pro',serif;font-size:14px;line-height:1.85;font-style:italic;max-width:440px;margin:0 auto 20px;}
+.end-title{font-family:var(--font-heading);font-size:62px;line-height:1;letter-spacing:.04em;font-weight:900;}
+.end-title.win{color:var(--teal);text-shadow:0 0 30px rgba(26,156,122,.35);}
+.end-title.lose{color:var(--red);text-shadow:0 0 30px rgba(192,57,43,.35);}
+
+/* ═══════════════════════════════════════
+   MISC
+═══════════════════════════════════════ */
+.ld{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:10px;letter-spacing:.15em;padding:9px 0;}
+.ldd{width:4px;height:4px;border-radius:50%;background:var(--red);animation:ldp 1.1s infinite;}
+.ldd:nth-child(2){animation-delay:.2s}.ldd:nth-child(3){animation-delay:.4s}
+@keyframes ldp{0%,80%,100%{opacity:.1}40%{opacity:1}}
+.fi{animation:fi .28s ease forwards;}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.prose{font-family:'Crimson Pro',serif;font-size:14px;line-height:1.85;font-weight:300;}
+.prose p+p{margin-top:7px;}
+.hl{color:var(--gold);font-style:italic;}
+.err{color:var(--red);}
+.ok{color:var(--teal);}
+.dim{color:var(--muted);}
+.label{font-size:8px;letter-spacing:.5em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.dv{display:flex;align-items:center;gap:9px;margin:13px 0;}
+.dv::before,.dv::after{content:'';flex:1;height:1px;}
+.tb .dv::before,.tb .dv::after{background:var(--brd2);}
+.tq .dv::before,.tq .dv::after{background:var(--qbrd);}
+.tk .dv::before,.tk .dv::after{background:var(--kbrd);}
+.tj .dv::before,.tj .dv::after{background:var(--jbrd);}
+.mt{margin-top:9px;}.mb{margin-bottom:9px;}.mt2{margin-top:16px;}
+.small{font-size:10px;color:var(--muted);}
+.pulse{animation:pl 1.5s infinite;}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ═══════════════════════════════════════
+   LOBBY — ATMOSPHERIC HOME SCREEN
+═══════════════════════════════════════ */
+
+/* PHASE 1 — Atmosphere */
+.lobby-wrap { display:flex; flex-direction:column; gap:0; }
+.lobby-atmo {
+  text-align:center;
+  padding:40px 0 28px;
+  animation:loAtmoIn 1.2s ease forwards;
+}
+@keyframes loAtmoIn { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:none} }
+.lobby-flicker-text {
+  font-size:8px; letter-spacing:.7em; color:var(--muted); text-transform:uppercase;
+  margin-bottom:24px;
+  animation:loFlicker 8s infinite;
+}
+@keyframes loFlicker {
+  0%,92%,100%{opacity:.6}
+  93%{opacity:.15} 94%{opacity:.7} 96%{opacity:.3} 98%{opacity:.6}
+}
+.lobby-suits-big {
+  display:flex; justify-content:center; gap:20px;
+  font-size:clamp(42px,10vw,72px);
+  letter-spacing:.05em;
+}
+.ls { display:inline-block; animation:lsSuitIn 1.4s ease forwards; opacity:0; }
+.ls1 { color:#5dde8a; text-shadow:0 0 20px rgba(93,222,138,.5); animation-delay:.1s; }
+.ls2 { color:#f05050; text-shadow:0 0 20px rgba(240,80,80,.5); animation-delay:.35s; }
+.ls3 { color:#f05050; text-shadow:0 0 20px rgba(240,80,80,.5); animation-delay:.6s; }
+.ls4 { color:#90b8f8; text-shadow:0 0 20px rgba(144,184,248,.4); animation-delay:.85s; }
+@keyframes lsSuitIn {
+  0%{opacity:0;transform:scale(.4) translateY(12px);}
+  60%{opacity:1;transform:scale(1.12);}
+  100%{opacity:1;transform:scale(1);}
+}
+
+/* PHASE 2 — Brutal text */
+.lobby-brutal {
+  padding:0 0 28px;
+  animation:loBrutalIn 1s ease .4s forwards; opacity:0;
+}
+@keyframes loBrutalIn { from{opacity:0} to{opacity:1} }
+.lobby-line {
+  font-family:'Crimson Pro',serif;
+  font-size:clamp(17px,4vw,22px);
+  font-style:italic; font-weight:300;
+  line-height:1.8;
+  color:var(--cream);
+  padding:2px 0;
+  opacity:0;
+  animation:loLineIn .8s ease forwards;
+}
+.l1{animation-delay:.5s;} .l2{animation-delay:.9s;} .l3{animation-delay:1.3s;}
+@keyframes loLineIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+.lobby-divider {
+  display:flex; align-items:center; gap:10px;
+  margin:20px 0;
+  animation:loDivIn .6s ease 1.8s forwards; opacity:0;
+}
+@keyframes loDivIn { from{opacity:0} to{opacity:.8} }
+.lobby-divider span:not(.ld-dot) { flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--brd2)); }
+.lobby-divider span:last-child { background:linear-gradient(90deg,var(--brd2),transparent); }
+.ld-dot { color:var(--red); font-size:12px; }
+.lobby-rules-strip {
+  display:grid; gap:8px;
+  animation:loRulesIn .8s ease 2s forwards; opacity:0;
+}
+@keyframes loRulesIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.lrs-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:8px 12px;
+  background:rgba(14,11,7,.8); border:1px solid var(--brd);
+  border-left:2px solid var(--dimred);
+}
+.lrs-icon { font-size:14px; min-width:28px; text-align:center; letter-spacing:1px; opacity:.7; }
+.lrs-text { font-family:'Crimson Pro',serif; font-size:13px; line-height:1.6; color:var(--muted); }
+
+/* PHASE 3 — Dramatic door/entry */
+.lobby-door {
+  animation:loDoorIn 1s ease 2.5s forwards; opacity:0;
+}
+@keyframes loDoorIn {
+  0%{opacity:0;transform:scale(.97);}
+  40%{opacity:1;transform:scale(1.01);}
+  100%{opacity:1;transform:scale(1);}
+}
+.door-frame {
+  border:1px solid var(--brd2);
+  position:relative; padding:28px 22px;
+  background:linear-gradient(135deg,rgba(14,11,7,.97),rgba(20,16,8,.9));
+}
+/* Animated corner accents */
+.door-corner {
+  position:absolute; width:18px; height:18px;
+  border-color:var(--red); border-style:solid;
+  opacity:.6; transition:opacity .3s;
+}
+.door-frame:hover .door-corner { opacity:1; }
+.dc-tl { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+.dc-tr { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+.dc-bl { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
+.dc-br { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+.door-inner { display:flex; flex-direction:column; gap:9px; }
+.lobby-enter-btn {
+  width:100%; margin-top:6px; padding:14px;
+  font-size:15px; letter-spacing:.3em;
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  background:var(--red); border:none; color:#fff;
+  position:relative; overflow:hidden;
+  transition:all .2s;
+}
+.lobby-enter-btn::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+  transform:translateX(-100%);
+  transition:transform .4s;
+}
+.lobby-enter-btn:hover::before { transform:translateX(100%); }
+.lobby-enter-btn:hover {
+  background:var(--blood);
+  box-shadow:0 0 30px rgba(192,57,43,.5), inset 0 0 20px rgba(139,0,0,.3);
+  letter-spacing:.35em;
+}
+.leb-text { font-family:var(--font-heading); font-weight:700; font-size:13px; letter-spacing:.12em; }
+.leb-arrow { font-size:18px; transition:transform .2s; }
+.lobby-enter-btn:hover .leb-arrow { transform:translateX(4px); }
+
+/* ═══════════════════════════════════════
+   LOBBY ROOM — Waiting state
+═══════════════════════════════════════ */
+.lobby-room-wrap { display:flex; flex-direction:column; gap:10px; }
+
+/* Room code display */
+.room-display {
+  text-align:center; padding:28px 20px;
+  background:linear-gradient(180deg,rgba(20,14,8,.9),rgba(14,11,7,.95));
+  border:1px solid var(--brd2);
+  position:relative; overflow:hidden;
+}
+.room-display::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(192,57,43,.06) 0%,transparent 65%);
+  pointer-events:none;
+}
+.rd-label {
+  font-size:8px; letter-spacing:.7em; color:var(--muted); text-transform:uppercase;
+  margin-bottom:10px;
+}
+.rd-code {
+  font-family:'Bebas Neue',cursive;
+  font-size:clamp(48px,14vw,88px);
+  letter-spacing:.35em;
+  color:var(--red);
+  line-height:1;
+  text-shadow:0 0 40px rgba(192,57,43,.4), 0 0 80px rgba(192,57,43,.15);
+  animation:rdCodePulse 3s ease-in-out infinite;
+}
+@keyframes rdCodePulse {
+  0%,100%{text-shadow:0 0 40px rgba(192,57,43,.4),0 0 80px rgba(192,57,43,.15);}
+  50%{text-shadow:0 0 60px rgba(192,57,43,.6),0 0 120px rgba(192,57,43,.25);}
+}
+.rd-sub { font-size:11px; color:var(--muted); margin-top:8px; letter-spacing:.08em; }
+
+/* Cell grid — player cards */
+.cell-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:6px;
+}
+.cell-card {
+  padding:12px 14px;
+  background:rgba(14,11,7,.95);
+  border:1px solid var(--brd2);
+  position:relative;
+  transition:all .2s;
+}
+.cell-card.me {
+  border-color:var(--red);
+  background:rgba(20,8,6,.95);
+}
+.cell-card.me::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+}
+.cell-card.empty { opacity:.2; border-style:dashed; }
+.cell-num { font-size:8px; letter-spacing:.4em; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+.cell-name {
+  font-family: var(--font-heading); font-size:20px; letter-spacing:.04em; font-weight:700;
+  color:var(--cream); line-height:1;
+}
+.cell-card.me .cell-name { color:var(--red); }
+.cell-you { font-size:10px; color:var(--red); letter-spacing:.2em; margin-left:6px; opacity:.8; }
+.empty-name { color:var(--brd2); }
+.cell-suits { margin-top:7px; display:flex; gap:5px; }
+.cs { font-size:16px; }
+.cs-club  { color:#5dde8a; text-shadow:0 0 6px rgba(93,222,138,.4); }
+.cs-dia   { color:#f05050; text-shadow:0 0 6px rgba(240,80,80,.4); }
+.cs-heart { color:#f05050; text-shadow:0 0 6px rgba(240,80,80,.4); }
+.cs-spade { color:#90b8f8; text-shadow:0 0 6px rgba(144,184,248,.3); }
+
+/* Status bar */
+.room-status { padding:10px 14px; background:rgba(14,11,7,.9); border:1px solid var(--brd); }
+.rs-bar { height:2px; background:var(--brd2); margin-bottom:8px; }
+.rs-fill { height:100%; background:linear-gradient(90deg,var(--blood),var(--red)); transition:width .5s ease; }
+.rs-text { font-size:11px; color:var(--muted); text-align:center; letter-spacing:.05em; }
+
+/* Start button */
+.lobby-start-btn {
+  width:100%; padding:16px;
+  font-family:var(--font-heading); font-size:15px; font-weight:700; letter-spacing:.2em;
+  background:linear-gradient(135deg,var(--blood),var(--red));
+  border:none; color:#fff; cursor:pointer;
+  position:relative; overflow:hidden;
+  animation:startPulse 2s ease-in-out infinite;
+  transition:all .2s;
+}
+.lobby-start-btn::after {
+  content:''; position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    45deg, transparent, transparent 8px,
+    rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 16px
+  );
+}
+.lobby-start-btn:hover {
+  background:linear-gradient(135deg,var(--red),#e04030);
+  box-shadow:0 0 40px rgba(192,57,43,.6), 0 0 80px rgba(192,57,43,.2);
+  letter-spacing:.38em;
+  animation:none;
+}
+@keyframes startPulse {
+  0%,100%{box-shadow:0 0 20px rgba(192,57,43,.3);}
+  50%{box-shadow:0 0 35px rgba(192,57,43,.55), 0 0 60px rgba(192,57,43,.2);}
+}
+
+.hdr-title small { font-size:.7em; vertical-align:middle; margin-right:.1em; }
+</style>
+</head>
+<body>
+<div id="champOverlay">
+  <div class="co-pre">The Joker's Keep has spoken</div>
+  <div class="co-joker">🃏</div>
+  <div class="co-name" id="coName"></div>
+  <div class="co-sub">Champion of the Borderlands</div>
+  <div class="co-suits">♣ ♦ ♥ ♠</div>
+</div>
+<div id="app"></div>
+<script>
+// ═══ CONFIG ═══════════════════════════════════════════════════════════
+const MIN_P=4,MAX_P=6,POLL_MS=2200;
+const MODEL='claude-sonnet-4-20250514';
+const AKEY='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';
+const SUITS=['♣','♦','♥','♠'];
+const SUIT_CLS={'\u2663':'alive-club','\u2666':'alive-diamond','\u2665':'alive-heart','\u2660':'alive-spade'};
+const TIER={B:'base',Q:'queen',K:'king',J:'joker'};
+const TLBL={base:'THE BORDERLANDS',queen:"QUEEN'S CHAMBER",king:"KING'S CHAMBER",joker:"JOKER'S KEEP"};
+const TICO={base:'',queen:'♛',king:'♚',joker:'🃏'};
+const NTIER={base:'queen',queen:'king',king:'joker',joker:null};
+const TGAMES={
+  base:['confess','scale','masquerade','finalq'],
+  queen:['mirror','speedround','chainreaction','finalq'],
+  king:['tribunal','cipher','impostor','finalq'],
+  joker:['roulette','lastsupper','execution'],
+};
+const PH={
+  LOBBY:'lobby',RULES:'rules',
+  CONFESS:'confess',CONFESS_REV:'confrev',
+  SCALE:'scale',SCALE_REV:'scalerev',
+  MASQ:'masq',MASQ_REV:'masqrev',
+  MIRROR:'mirror',MIRROR_REV:'mirrorrev',
+  SPEED:'speed',SPEED_RES:'speedres',
+  CHAIN:'chain',CHAIN_RES:'chainres',
+  TRIBUNAL:'tribunal',TRIBUNAL_RES:'tribres',
+  CIPHER:'cipher',CIPHER_RES:'cipherres',
+  IMPOSTOR:'impostor',IMPOSTOR_RES:'impres',
+  FINALQ:'finalq',FINALQ_RES:'finalqres',
+  ROULETTE:'roulette',ROULETTE_RES:'roulres',
+  LASTSUPPER:'lastsupper',LS_RES:'lsres',
+  EXECUTION:'execution',EXEC_RES:'execres',
+  ADVANCING:'advancing',ENDED:'ended',
+};
+const RULES_DATA={
+  confess:{icon:'🕯',title:'THE CONFESSION WALL',sub:'♦ Diamonds — 3',tc:'tb',inst:'Write one true statement about yourself.',rules:['90 seconds to write. All revealed simultaneously.','No confession = lose 1 life.','A clue word is hidden in one confession. Remember everything.']},
+  scale:{icon:'⚖',title:'THE SCALE',sub:'♣ Clubs — 5',tc:'tb',inst:'Choose a side. The minority loses.',rules:['30 seconds to pick one of two options.','Minority side = each player loses 1 life.','Tie = everyone loses 1 life.','The majority option contains a hidden clue word.']},
+  masquerade:{icon:'🎭',title:'THE MASQUERADE',sub:'♥ Hearts — 7',tc:'tb',inst:'You have a secret role. Lie or tell the truth.',rules:['Claim your role in chat — 60 seconds.','Then vote who you think is bluffing.','Caught bluffing = lose 2 lives.','Told truth but accused = accuser loses 1 life.','Silent = lose 1 life.','A clue word hides in one role description.']},
+  mirror:{icon:'🪞',title:'THE MIRROR',sub:'♦ Diamonds — Q',tc:'tq',inst:'Who lied in their Base Room confession?',rules:['45 seconds to accuse one player.','Most accused loses 1 life.','If they told the truth — every accuser loses 1 life.','The accusation count is the clue digit.']},
+  speedround:{icon:'⏱',title:'SPEED ROUND',sub:'♣ Clubs — Q',tc:'tq',inst:'5 questions. 10 seconds each.',rules:['Wrong answer = lose 1 life immediately.','Slowest correct = lose 1 life.','Fastest correct = safe.','Question 3\'s answer is the clue word.']},
+  chainreaction:{icon:'🔄',title:'CHAIN REACTION',sub:'♥ Hearts — Q',tc:'tq',inst:'Build a chain one word at a time.',rules:['Break chain / repeat word / time out = lose 1 life.','15 seconds per turn. 3 full rounds.','Every 3rd word added is a clue piece.']},
+  tribunal:{icon:'⚖',title:'THE TRIBUNAL',sub:'♦ Diamonds — K',tc:'tk',inst:'You are accused. Write your defense.',rules:['60 seconds to write. No defense = lose 2 lives.','Players vote the most suspicious.','Most votes = lose 1 life.','Clue word is in the most-voted accusation.']},
+  cipher:{icon:'🔐',title:'THE CIPHER',sub:'♣ Clubs — K',tc:'tk',inst:'Crack the code. First wins. Last loses.',rules:['First correct = gain 1 life back.','Last correct = lose 1 life.','Wrong = lose 1 life. Max 3 attempts.','90 seconds. The decoded answer is the clue.']},
+  impostor:{icon:'🕵',title:'THE IMPOSTOR QUESTION',sub:'♥ Hearts — K',tc:'tk',inst:'Five statements. One is a lie. Find it.',rules:['45 seconds to identify the lie.','Correct = safe. Wrong = lose 1 life.','The false statement contains the clue word.']},
+  finalq:{icon:'🔍',title:'THE FINAL QUESTION',sub:'♠ Spades — A',tc:'tb',inst:'The answer has been in front of you all along.',rules:['Three clues were hidden in the previous games.','Wrong answer = lose 1 life.','Wrong on last life = eliminated instantly.','60 seconds.']},
+  roulette:{icon:'🎰',title:'RUSSIAN ROULETTE',sub:'🃏 Joker — I',tc:'tj',inst:'Bet your lives. The Joker flips a coin.',rules:['Bet 1, 2, 3, or ALL lives. 20 seconds.','Win (heads) = survive + gain 1 life.','Lose (tails) = forfeit your entire bet.','Bet ALL and lose = eliminated instantly.']},
+  lastsupper:{icon:'🍷',title:'THE LAST SUPPER',sub:'🃏 Joker — II',tc:'tj',inst:'A cup is passed. Drink or pay. One sip is poisoned.',rules:['Pass = safe this round but lose 1 life.','Drink = 1-in-6 poison chance.','Poisoned = lose ALL lives. Eliminated.','Chance rises each round: 1/6 → 2/6 → 3/6.','Everyone passes 3 times = all lose 2 lives.']},
+  execution:{icon:'☠',title:'THE EXECUTION',sub:'🃏 Joker — III',tc:'tj',inst:'One of you does not leave this room.',rules:['Nominate one person for elimination. 60 seconds.','Majority vote = that player eliminated instantly.','Tie = both eliminated.','No majority = fewest lives eliminated.','Last player standing = Champion of the Borderlands.']},
+};
+const RESULT_PH=[PH.CONFESS_REV,PH.SCALE_REV,PH.MASQ_REV,PH.MIRROR_REV,PH.SPEED_RES,PH.CHAIN_RES,PH.TRIBUNAL_RES,PH.CIPHER_RES,PH.IMPOSTOR_RES,PH.FINALQ_RES,PH.ROULETTE_RES,PH.LS_RES,PH.EXEC_RES];
+
+// ═══ FIREBASE ══════════════════════════════════════════════════════════
+const FBCFG={apiKey:"AIzaSyBVno_UEZkwUrpUlHPK4y28QADLsdUHoYI",authDomain:"borderlandsv4-28762.firebaseapp.com",databaseURL:"https://borderlandsv4-28762-default-rtdb.firebaseio.com",projectId:"borderlandsv4-28762",storageBucket:"borderlandsv4-28762.firebasestorage.app",messagingSenderId:"742197412034",appId:"1:742197412034:web:aa2071c2cfd49d3e413b5b"};
+let _db=null;
+function getDB(){if(_db)return _db;try{if(!firebase.apps.length)firebase.initializeApp(FBCFG);_db=firebase.database();}catch(e){console.error(e);}return _db;}
+async function fbG(p){try{const s=await getDB().ref(p).once('value');return s.exists()?s.val():null;}catch{return null;}}
+async function fbS(p,v){try{const c=JSON.parse(JSON.stringify(v));await getDB().ref(p).set(c);}catch(e){console.error('fbS',e);}}
+async function fbAll(p){try{const s=await getDB().ref(p).once('value');if(!s.exists())return[];const o=[];s.forEach(c=>o.push(c.val()));return o;}catch{return[];}}
+
+// ═══ UTILS ═════════════════════════════════════════════════════════════
+function uid(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function rc5(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:5},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function livesLeft(p){return SUITS.filter(s=>!(p.lostSuits||[]).includes(s)).length;}
+function loseLife(p,n=1){p.lostSuits=p.lostSuits||[];for(let i=0;i<n;i++){const rem=SUITS.filter(s=>!p.lostSuits.includes(s));if(!rem.length){p.alive=false;return true;}p.lostSuits.push(rem[rem.length-1]);if(p.lostSuits.length>=SUITS.length){p.alive=false;return true;}}return p.lostSuits.length>=SUITS.length;}
+function restoreLife(p,n=1){p.lostSuits=p.lostSuits||[];for(let i=0;i<n;i++)if(p.lostSuits.length>0)p.lostSuits.pop();}
+function livesHTML(p){return SUITS.map(s=>{const lost=(p.lostSuits||[]).includes(s);return`<span class="lc ${lost?'lost':SUIT_CLS[s]||''}">${s}</span>`;}).join('');}
+function pcLivesHTML(p){return SUITS.map(s=>`<span style="font-size:11px;opacity:${(p.lostSuits||[]).includes(s)?.18:.85};color:${s==='\u2666'||s==='\u2665'?'var(--red)':'#a0c4f8'}">${s}</span>`).join('');}
+function mkPlayer(id,name){return{id,name,alive:true,lostSuits:[],confession:null,tribunalSpeech:null};}
+function sysMsg(room,text){room.messages=room.messages||[];room.messages.push({type:'sys',text,ts:Date.now()});}
+
+// ═══ LOCAL STATE ═══════════════════════════════════════════════════════
+const ME={id:uid(),name:''};
+let RC='',ROOM=null,pollTimer=null,timerIv=null,timerLeft=0;
+let pendingDeath=null,pendingHurt=null,champShown=false;
+let aiLock={};
+// game state
+let myConf='',confLocked=false;
+let myScale=null;
+let myMasqClaim='',masqClaimSent=false,myMasqVote=null;
+let myMirror=null;
+let mySpeedAns='',speedAnswered=false;
+let myChainWord='',chainSent=false;
+let myTribSpeech='',tribSpeechSent=false,myTribVote=null;
+let myCipherAttempts=0,myCipherSolved=false;
+let myImpChoice=null;
+let myFinalAns='',finalSent=false;
+let myBet=null;
+let myCupChoice=null;
+let myExecNom=null;
+function resetState(){myConf='';confLocked=false;myScale=null;myMasqClaim='';masqClaimSent=false;myMasqVote=null;myMirror=null;mySpeedAns='';speedAnswered=false;myChainWord='';chainSent=false;myTribSpeech='';tribSpeechSent=false;myTribVote=null;myCipherAttempts=0;myCipherSolved=false;myImpChoice=null;myFinalAns='';finalSent=false;myBet=null;myCupChoice=null;myExecNom=null;}
+
+// ═══ ROOM ══════════════════════════════════════════════════════════════
+function mkRoom(code,tier,player){return{code,tier,phase:PH.LOBBY,createdAt:Date.now(),players:[player],clues:{},confessions:{},scaleQ:null,scaleChoices:{},masqRoles:{},masqClaims:{},masqVotes:{},mirrorAccusations:{},speedQuestions:[],speedRound:0,speedAnswers:{},chainWords:[],chainTurn:0,tribunalData:{},tribunalSpeeches:{},tribunalVotes:{},cipherData:null,cipherAnswers:{},cipherWinner:null,impostorData:null,impostorAnswers:{},finalQData:null,finalAnswers:{},rouletteBets:{},rouletteResults:{},rouletteStart:null,cupRound:1,cupTurn:0,cupDrunk:{},execNoms:{},clue1:null,clue2:null,clue3:null,currentGameIdx:0,narration:null,messages:[{type:'sys',text:`Room opened. Code: ${code}`,ts:Date.now()}],eliminated:[],winner:null,championName:null,_nextRoomCode:null,_rulesFor:null,_rulesCountdown:null,_advanceAt:null};}
+async function loadRoom(code){return await fbG('blv5/rooms/'+code);}
+async function saveRoom(r){await fbS('blv5/rooms/'+r.code,r);}
+async function findOpen(tier){const rooms=await fbAll('blv5/rooms');for(const r of rooms){if(!r?.code||Date.now()-r.createdAt>1800000)continue;if(r.phase===PH.LOBBY&&r.tier===tier&&(r.players||[]).length<MAX_P)return r;}return null;}
+async function findAdvancing(tier){const rooms=await fbAll('blv5/rooms');for(const r of rooms){if(!r?.code||Date.now()-r.createdAt>3600000)continue;if(r.tier===tier&&r.phase===PH.LOBBY&&(r.players||[]).length<MAX_P)return r;}return null;}
+
+// ═══ AI ════════════════════════════════════════════════════════════════
+const ATONE={base:'You are the cold announcer of The Borderlands. Clinical, eerie. Max 2 sentences.',queen:"You are the Queen's Chamber voice. Elegant, merciless. Max 2 sentences.",king:'You are the King. Absolute, heavy. Max 2 sentences.',joker:'You are the Joker. Chaotic, amused. Max 1 sentence.'};
+async function ai(prompt,tier='base'){try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AKEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL,max_tokens:200,system:ATONE[tier]||ATONE.base,messages:[{role:'user',content:prompt}]})});const d=await r.json();return d.content?.[0]?.text?.trim()||'';}catch{return'';}}
+async function aiJSON(p){try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AKEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL,max_tokens:600,system:'Respond ONLY with valid JSON. No markdown.',messages:[{role:'user',content:p}]})});const d=await r.json();return JSON.parse(d.content?.[0]?.text?.trim()||'{}');}catch{return null;}}
+function aiB(code,prompt,tier){ai(prompt,tier).then(async n=>{if(!n)return;const r=await loadRoom(code);if(!r)return;r.narration=n;await saveRoom(r);}).catch(()=>{});}
+
+// ═══ JOIN ══════════════════════════════════════════════════════════════
+async function joinGame(name,code){
+  ME.name=name.trim().toUpperCase().slice(0,14);if(!ME.name)return;
+  const ci=code.trim().toUpperCase();
+  let room;
+  if(ci){room=await loadRoom(ci);if(!room){showErr('Room not found.');return;}if(room.phase!==PH.LOBBY){showErr('Game started.');return;}if(room.players.length>=MAX_P){showErr('Room full.');return;}}
+  else{room=await findOpen(TIER.B);if(!room){RC=rc5();room=mkRoom(RC,TIER.B,mkPlayer(ME.id,ME.name));}}
+  RC=room.code;
+  if(!room.players.find(p=>p.id===ME.id)){room.players.push(mkPlayer(ME.id,ME.name));sysMsg(room,`${ME.name} entered.`);}
+  ROOM=room;await saveRoom(room);render();startPoll();
+}
+function showErr(m){const e=document.getElementById('joinErr');if(e){e.textContent=m;e.style.display='block';}}
+
+// ═══ START ═════════════════════════════════════════════════════════════
+async function startGame(code){
+  const room=await loadRoom(code);
+  if(!room||room.phase!==PH.LOBBY||room.players.length<MIN_P)return;
+  room.phase=PH.RULES;room._rulesFor=TGAMES[room.tier][0];room._rulesCountdown=Date.now()+8000;
+  sysMsg(room,`${TICO[room.tier]||'🃏'} Game begins!`);
+  await saveRoom(room);
+}
+
+// ═══ RULES → GAME ══════════════════════════════════════════════════════
+async function checkRules(room){
+  if(room.phase!==PH.RULES)return;
+  if(!room._rulesCountdown||Date.now()<room._rulesCountdown)return;
+  if(aiLock.rules)return;aiLock.rules=true;
+  await launchGame(room,room._rulesFor);
+  delete aiLock.rules;
+}
+
+async function launchGame(room,game){
+  resetState();const T=room.tier;
+  if(game==='confess'){
+    room.phase=PH.CONFESS;room.confessions={};room.confDeadline=Date.now()+90000;
+    room.narration='The Confession Wall opens. 90 seconds.';
+    sysMsg(room,'🕯 Confession Wall — 90 seconds.');
+    aiB(room.code,`The Borderlands begin. ${room.players.length} participants. Write one truth.`,T);
+  } else if(game==='scale'){
+    room.phase=PH.SCALE;room.scaleChoices={};room.scaleDeadline=Date.now()+30000;
+    const qs=[{q:'What drives people to betray those closest to them?',a:'FEAR',b:'GREED',clue:'SHADOW'},{q:'When the door closes forever, what remains?',a:'HOPE',b:'REGRET',clue:'HOLLOW'},{q:'What do survivors carry that others cannot see?',a:'GUILT',b:'MEMORY',clue:'EMBER'},{q:'What is more dangerous — knowing too much or knowing nothing?',a:'KNOWING',b:'IGNORANCE',clue:'VEIL'}];
+    room.scaleQ=qs[Math.floor(Math.random()*qs.length)];
+    room.narration='Choose a side.';sysMsg(room,'⚖ The Scale — 30 seconds.');
+  } else if(game==='masquerade'){
+    room.phase=PH.MASQ;room.masqClaims={};room.masqVotes={};room.masqVoteDeadline=Date.now()+180000;
+    const roles=[{role:'The Hollow',icon:'🕳',desc:'Speaks with confidence about things never experienced.'},{role:'The Architect',icon:'🏛',desc:'Plans everything three moves ahead. Always.'},{role:'The Ghost',icon:'👻',desc:'Nobody remembers inviting them but here they are.'},{role:'The Merchant',icon:'⚖',desc:'Every alliance has a price. Including this one.'},{role:'The Watcher',icon:'👁',desc:'Sees everything. Says nothing.'},{role:'The Fool',icon:'🃏',desc:'Underestimated. Always.'}];
+    room.players.filter(p=>p.alive).forEach((p,i)=>{room.masqRoles[p.id]=roles[i%roles.length];});
+    room.narration='Masks distributed. You may lie.';sysMsg(room,'🎭 Masquerade — claim your role.');
+  } else if(game==='mirror'){
+    room.phase=PH.MIRROR;room.mirrorAccusations={};room.mirrorDeadline=Date.now()+45000;
+    room.narration='The Mirror shows only what you believe.';sysMsg(room,'🪞 The Mirror — 45 seconds.');
+  } else if(game==='speedround'){
+    room.phase=PH.SPEED;room.speedRound=0;room.speedAnswers={};room.speedDeadline=Date.now()+10000;
+    room.speedQuestions=[{q:'What has hands but cannot clap?',a:'CLOCK'},{q:'I speak without a mouth, hear without ears, have no body but come alive with wind. What am I?',a:'ECHO'},{q:"A king's only son rides into battle. The general says I cannot fight this is my son but is not his father. How?",a:'MOTHER',isClue:true},{q:'The more you take, the more you leave behind. What am I?',a:'FOOTSTEPS'},{q:'I have cities but no houses, mountains but no trees, water but no fish. What am I?',a:'MAP'}];
+    room.narration='Five questions. Ten seconds each.';sysMsg(room,'⏱ Speed Round — Q1');
+  } else if(game==='chainreaction'){
+    room.phase=PH.CHAIN;room.chainWords=[];room.chainTurn=0;room.chainDeadline=Date.now()+15000;
+    const starters=['BLOOD','SHADOW','IRON','SILENCE','FIRE'];
+    const sw=starters[Math.floor(Math.random()*starters.length)];
+    room.chainWords=[{word:sw,playerId:'system',playerName:'System',isClue:false}];
+    room.narration=`The chain begins: ${sw}`;sysMsg(room,'🔄 Chain Reaction — start: '+sw);
+  } else if(game==='tribunal'){
+    room.phase=PH.TRIBUNAL;room.tribunalSpeeches={};room.tribunalVotes={};room.tribunalDeadline=Date.now()+60000;
+    const crimes=['knowing too much from the very beginning','watching others suffer without intervening','always choosing the safe answer','entering with a plan nobody else has seen','surviving this long through luck alone','being precisely the kind of person who ends up here'];
+    room.players.filter(p=>p.alive).forEach((p,i)=>{room.tribunalData[p.id]={accusation:`${p.name} is accused of ${crimes[i%crimes.length]}.`};});
+    room.narration='The King accuses. Defend yourself.';sysMsg(room,'⚖ Tribunal — 60 seconds.');
+  } else if(game==='cipher'){
+    room.phase=PH.CIPHER;room.cipherAnswers={};room.cipherWinner=null;room.cipherDeadline=Date.now()+90000;
+    const ciphers=[{encoded:'20-18-21-19-20   14-15-14-5',answer:'TRUST NONE',method:'A=1 B=2...',hint:'Two words. What the King demands.'},{encoded:'19-5-5   20-8-18-15-21-7-8',answer:'SEE THROUGH',method:'A=1 B=2...',hint:'Two words. What the wise do.'},{encoded:'... .- ..-. . .-',answer:'SAFER',method:'Morse Code',hint:'What nobody truly is.'},{encoded:'IBMM GBMM UBMM',answer:'TALL',method:'Caesar +1',hint:'Shift each letter back one.'}];
+    room.cipherData=ciphers[Math.floor(Math.random()*ciphers.length)];
+    room.narration='A cipher appears. Crack it first.';sysMsg(room,'🔐 Cipher — 90 seconds.');
+  } else if(game==='impostor'){
+    room.phase=PH.IMPOSTOR;room.impostorAnswers={};room.impostorDeadline=Date.now()+45000;
+    const alive=room.players.filter(p=>p.alive);
+    const trueS=['This chamber has eliminated at least one player.','More than half the original players have been eliminated.','The Borderlands have no rules that protect the innocent.','Every game has had a survivor.'];
+    const falseS=`${alive[0]?.name||'A player'} has never lost a single life across all games.`;
+    const all=[...trueS.slice(0,4),falseS];
+    for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
+    room.impostorData={statements:all,falseIdx:all.indexOf(falseS),clueWord:'NEVER'};
+    room.narration='Five statements. One is false.';sysMsg(room,'🕵 Impostor Question — 45 seconds.');
+  } else if(game==='finalq'){
+    room.phase=PH.FINALQ;room.finalAnswers={};room.finalDeadline=Date.now()+60000;
+    const c1=room.clue1||'???',c2=room.clue2||'???',c3=room.clue3||'???';
+    room.finalQData={clue1:c1,clue2:c2,clue3:c3,question:`Three words were hidden across the games. They were: ${c1}, ${c2}, and ${c3}. What phrase do they form together?`,answer:`${c1} ${c2} ${c3}`};
+    room.narration='The answer was always there.';sysMsg(room,'🔍 Final Question — 60 seconds.');
+  } else if(game==='roulette'){
+    room.phase=PH.ROULETTE;room.rouletteBets={};room.rouletteResults={};room.rouletteStart=Date.now();
+    room.narration='Bet your lives.';sysMsg(room,'🎰 Russian Roulette — 20 seconds to bet.');
+    aiB(room.code,'Russian Roulette begins. Bet your lives.',T);
+  } else if(game==='lastsupper'){
+    room.phase=PH.LASTSUPPER;room.cupRound=1;room.cupTurn=0;room.cupDrunk={};
+    room.narration='A cup is passed. Drink or pay.';sysMsg(room,'🍷 The Last Supper begins.');
+    aiB(room.code,'The Joker passes a poisoned cup.',T);
+  } else if(game==='execution'){
+    room.phase=PH.EXECUTION;room.execNoms={};room.execDeadline=Date.now()+60000;
+    room.narration='One of you does not leave this room.';sysMsg(room,'☠ The Execution — 60 seconds.');
+    aiB(room.code,'The Execution. One player will not survive.',T);
+  }
+  delete room._rulesFor;delete room._rulesCountdown;
+  await saveRoom(room);
+}
+
+// ═══ GAME SUBMISSIONS ══════════════════════════════════════════════════
+async function submitConf(text){
+  if(confLocked||!text.trim())return;confLocked=true;myConf=text.trim();
+  const room=await loadRoom(RC);if(!room)return;
+  room.confessions[ME.id]=myConf;
+  const p=room.players.find(p=>p.id===ME.id);if(p)p.confession=myConf;
+  await saveRoom(room);render();
+}
+async function submitScale(choice){
+  if(myScale)return;myScale=choice;
+  const room=await loadRoom(RC);if(!room)return;
+  room.scaleChoices[ME.id]=choice;await saveRoom(room);render();
+}
+async function submitMasqClaim(text){
+  if(masqClaimSent||!text.trim())return;masqClaimSent=true;myMasqClaim=text.trim();
+  const room=await loadRoom(RC);if(!room)return;
+  room.masqClaims[ME.id]={text:myMasqClaim,name:ME.name};
+  room.messages.push({type:'chat',authorId:ME.id,authorName:ME.name,text:myMasqClaim,ts:Date.now()});
+  await saveRoom(room);render();
+}
+async function submitMasqVote(tid){
+  if(myMasqVote)return;myMasqVote=tid;
+  const room=await loadRoom(RC);if(!room)return;
+  room.masqVotes[ME.id]=tid;
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.masqVotes).length>=alive.length)await resolveMasq(room);
+  else await saveRoom(room);render();
+}
+async function resolveMasq(room){
+  const tally={};Object.values(room.masqVotes).forEach(id=>{tally[id]=(tally[id]||0)+1;});
+  const max=Math.max(...Object.values(tally));
+  const topId=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];
+  const victim=room.players.find(p=>p.id===topId);
+  if(!victim){room.phase=PH.MASQ_REV;await saveRoom(room);return;}
+  const role=room.masqRoles[topId];const claim=room.masqClaims[topId]?.text||'';
+  const lied=!claim.toLowerCase().includes((role?.role||'zzz').toLowerCase());
+  room.masqResult={victimId:topId,victimName:victim.name,lied,tally,roleName:role?.role};
+  if(lied){const died=loseLife(victim,2);if(died&&!room.eliminated.includes(topId))room.eliminated.push(topId);sysMsg(room,`🎭 ${victim.name} was bluffing — loses 2 lives.`);}
+  else{const accusers=Object.keys(room.masqVotes).filter(id=>room.masqVotes[id]===topId&&id!==topId);accusers.forEach(id=>{const p=room.players.find(p=>p.id===id);if(p){loseLife(p);if(livesLeft(p)===0)room.eliminated.push(id);}});sysMsg(room,`🎭 ${victim.name} told the truth — accusers penalized.`);}
+  // clue from role description
+  const roleDesc=Object.values(room.masqRoles||{})[0]?.desc||'';
+  room.clue3=roleDesc.split(' ')[2]?.replace(/[^a-zA-Z]/g,'').toUpperCase()||'MASK';
+  room.phase=PH.MASQ_REV;room._advanceAt=Date.now()+10000;
+  aiB(room.code,`Masquerade ends. ${victim.name} was most accused. ${lied?'Bluffing.':'Told truth.'}`,room.tier);
+  await saveRoom(room);
+}
+async function submitMirror(tid){
+  if(myMirror)return;myMirror=tid;
+  const room=await loadRoom(RC);if(!room)return;
+  room.mirrorAccusations[ME.id]=tid;
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.mirrorAccusations).length>=alive.length)await resolveMirror(room);
+  else await saveRoom(room);render();
+}
+async function resolveMirror(room){
+  const tally={};Object.values(room.mirrorAccusations).forEach(id=>{tally[id]=(tally[id]||0)+1;});
+  const max=Math.max(...Object.values(tally));
+  const topId=Object.keys(tally).filter(id=>tally[id]===max)[0];
+  const victim=room.players.find(p=>p.id===topId);
+  const toldTruth=Math.random()>0.35;
+  room.mirrorResult={topId,topName:victim?.name,tally,toldTruth,count:max};
+  if(!toldTruth){if(victim){const died=loseLife(victim);if(died)room.eliminated.push(topId);}sysMsg(room,`🪞 ${victim?.name} was most accused — loses 1 life.`);}
+  else{const accusers=Object.keys(room.mirrorAccusations).filter(id=>room.mirrorAccusations[id]===topId);accusers.forEach(id=>{const p=room.players.find(p=>p.id===id);if(p){loseLife(p);if(livesLeft(p)===0)room.eliminated.push(id);}});sysMsg(room,`🪞 ${victim?.name} told the truth — accusers lose 1 life.`);}
+  room.clue1=String(max);
+  room.phase=PH.MIRROR_REV;room._advanceAt=Date.now()+10000;
+  aiB(room.code,`Mirror ends. ${victim?.name} accused ${max} times.`,room.tier);
+  await saveRoom(room);
+}
+async function submitSpeed(text){
+  if(speedAnswered||!text.trim())return;speedAnswered=true;mySpeedAns=text.trim();
+  const room=await loadRoom(RC);if(!room||room.phase!==PH.SPEED)return;
+  const qIdx=room.speedRound||0;const q=room.speedQuestions?.[qIdx];if(!q)return;
+  room.speedAnswers=room.speedAnswers||{};
+  room.speedAnswers[ME.id]={answer:text.trim(),correct:text.trim().toUpperCase()===q.a,time:Date.now(),name:ME.name};
+  await saveRoom(room);render();
+}
+async function resolveSpeedRound(room){
+  const qIdx=room.speedRound||0;const q=room.speedQuestions?.[qIdx];if(!q)return;
+  const alive=room.players.filter(p=>p.alive);const ans=room.speedAnswers||{};
+  const correct=alive.filter(p=>ans[p.id]?.correct).sort((a,b)=>(ans[b.id]?.time||0)-(ans[a.id]?.time||0));
+  const incorrect=alive.filter(p=>!ans[p.id]?.correct);
+  incorrect.forEach(p=>{loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});
+  if(correct.length>1){const slowest=correct[0];loseLife(slowest);if(livesLeft(slowest)===0&&!room.eliminated.includes(slowest.id))room.eliminated.push(slowest.id);}
+  if(qIdx===2&&q.isClue)room.clue2=q.a;
+  sysMsg(room,`⏱ Q${qIdx+1}: ${q.a}`);
+  if(qIdx<4){room.speedRound=qIdx+1;room.speedAnswers={};speedAnswered=false;room.speedDeadline=Date.now()+10000;sysMsg(room,`⏱ Q${qIdx+2} of 5`);}
+  else{room.phase=PH.SPEED_RES;room._advanceAt=Date.now()+8000;sysMsg(room,'⏱ Speed Round done!');}
+  await saveRoom(room);
+}
+async function submitChain(word){
+  if(chainSent||!word.trim())return;
+  const room=await loadRoom(RC);if(!room||room.phase!==PH.CHAIN)return;
+  const alive=room.players.filter(p=>p.alive);
+  const turnP=alive[(room.chainTurn||0)%alive.length];
+  if(turnP?.id!==ME.id)return;
+  chainSent=true;
+  const wc=room.chainWords.length;const isClue=(wc+1)%3===0;
+  const w=word.trim().toUpperCase();
+  room.chainWords.push({word:w,playerId:ME.id,playerName:ME.name,isClue});
+  if(isClue){const ci=Math.ceil((wc+1)/3);if(ci<=3)room[`clue${ci}`]=w;}
+  room.chainTurn=(room.chainTurn||0)+1;room.chainDeadline=Date.now()+15000;
+  sysMsg(room,`🔄 ${ME.name}: ${w}`);
+  const total=alive.length*3;
+  if(room.chainTurn>=total){room.phase=PH.CHAIN_RES;room._advanceAt=Date.now()+8000;sysMsg(room,'🔄 Chain complete!');}
+  await saveRoom(room);chainSent=false;render();
+}
+async function submitTribSpeech(text){
+  if(tribSpeechSent||!text.trim())return;tribSpeechSent=true;myTribSpeech=text.trim();
+  const room=await loadRoom(RC);if(!room)return;
+  room.tribunalSpeeches[ME.id]={text:myTribSpeech,name:ME.name};
+  sysMsg(room,`${ME.name} addressed the Tribunal.`);await saveRoom(room);render();
+}
+async function submitTribVote(tid){
+  if(myTribVote)return;myTribVote=tid;
+  const room=await loadRoom(RC);if(!room)return;
+  room.tribunalVotes[ME.id]=tid;
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.tribunalVotes).length>=alive.length)await resolveTribunal(room);
+  else await saveRoom(room);render();
+}
+async function resolveTribunal(room){
+  const tally={};Object.values(room.tribunalVotes).forEach(id=>{tally[id]=(tally[id]||0)+1;});
+  const max=Math.max(...Object.values(tally));
+  const topId=Object.keys(tally).filter(id=>tally[id]===max)[0];
+  const victim=room.players.find(p=>p.id===topId);
+  if(victim){loseLife(victim);if(livesLeft(victim)===0)room.eliminated.push(topId);}
+  const acc=room.tribunalData?.[topId]?.accusation||'';
+  const words=acc.split(' ');room.clue1=words[Math.floor(words.length/2)]?.replace(/[^a-zA-Z]/g,'').toUpperCase()||'SEEN';
+  room.tribunalResult={topId,topName:victim?.name,tally};
+  room.phase=PH.TRIBUNAL_RES;room._advanceAt=Date.now()+9000;
+  sysMsg(room,`⚖ ${victim?.name} found most suspicious.`);
+  aiB(room.code,`Tribunal ends. ${victim?.name} found guilty.`,room.tier);
+  await saveRoom(room);
+}
+async function submitCipher(text){
+  if(myCipherSolved||myCipherAttempts>=3||!text.trim())return;myCipherAttempts++;
+  const room=await loadRoom(RC);if(!room||!room.cipherData)return;
+  const correct=text.trim().toUpperCase()===room.cipherData.answer?.toUpperCase();
+  room.cipherAnswers=room.cipherAnswers||{};
+  room.cipherAnswers[ME.id]={attempt:myCipherAttempts,correct,name:ME.name,time:Date.now()};
+  if(correct){
+    myCipherSolved=true;
+    if(!room.cipherWinner){room.cipherWinner=ME.id;const me=room.players.find(p=>p.id===ME.id);if(me)restoreLife(me,1);sysMsg(room,`⚡ ${ME.name} cracked it — gains 1 life!`);}
+    else sysMsg(room,`${ME.name} also solved the cipher.`);
+    room.clue2=room.cipherData.answer;
+    const alive=room.players.filter(p=>p.alive);
+    if(alive.filter(p=>room.cipherAnswers[p.id]?.correct).length>=alive.length)await resolveCipher(room);
+    else await saveRoom(room);
+  } else {
+    if(myCipherAttempts>=3){const me=room.players.find(p=>p.id===ME.id);if(me){loseLife(me);if(livesLeft(me)===0)room.eliminated.push(ME.id);}sysMsg(room,`${ME.name} failed 3 attempts.`);}
+    else sysMsg(room,`${ME.name} incorrect (${myCipherAttempts}/3).`);
+    await saveRoom(room);
+  }
+  render();
+}
+async function resolveCipher(room){
+  const alive=room.players.filter(p=>p.alive);const ans=room.cipherAnswers||{};
+  const correct=alive.filter(p=>ans[p.id]?.correct).sort((a,b)=>(ans[b.id]?.time||0)-(ans[a.id]?.time||0));
+  if(correct.length>1){const slowest=correct[0];loseLife(slowest);if(livesLeft(slowest)===0&&!room.eliminated.includes(slowest.id))room.eliminated.push(slowest.id);sysMsg(room,`🔐 ${slowest.name} solved it last.`);}
+  room.phase=PH.CIPHER_RES;room._advanceAt=Date.now()+9000;
+  sysMsg(room,`🔐 Answer: ${room.cipherData?.answer}`);await saveRoom(room);
+}
+async function submitImpostor(idx){
+  if(myImpChoice!==null)return;myImpChoice=idx;
+  const room=await loadRoom(RC);if(!room||!room.impostorData)return;
+  const correct=idx===room.impostorData.falseIdx;
+  room.impostorAnswers[ME.id]={choice:idx,correct,name:ME.name};
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.impostorAnswers).length>=alive.length)await resolveImpostor(room);
+  else await saveRoom(room);render();
+}
+async function resolveImpostor(room){
+  const alive=room.players.filter(p=>p.alive);const ans=room.impostorAnswers||{};
+  const losers=[];
+  alive.forEach(p=>{if(!ans[p.id]?.correct){loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);losers.push(p.name);}});
+  room.clue3=room.impostorData?.clueWord||'GHOST';
+  if(losers.length)sysMsg(room,`🕵 Wrong: ${losers.join(', ')}.`);
+  room.phase=PH.IMPOSTOR_RES;room._advanceAt=Date.now()+9000;
+  sysMsg(room,`🕵 The lie was statement ${room.impostorData.falseIdx+1}.`);await saveRoom(room);
+}
+async function submitFinalQ(text){
+  if(finalSent||!text.trim())return;finalSent=true;myFinalAns=text.trim();
+  const room=await loadRoom(RC);if(!room||!room.finalQData)return;
+  const correct=text.trim().toUpperCase().includes(room.finalQData.clue1||'ZZZZZ');
+  room.finalAnswers[ME.id]={answer:text.trim(),correct,name:ME.name};
+  const me=room.players.find(p=>p.id===ME.id);
+  if(!correct&&me){loseLife(me);if(livesLeft(me)===0)room.eliminated.push(ME.id);}
+  sysMsg(room,`🔍 ${ME.name} answered ${correct?'correctly':'incorrectly'}.`);
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.finalAnswers).length>=alive.length)await resolveFinalQ(room);
+  else await saveRoom(room);render();
+}
+async function resolveFinalQ(room){
+  room.phase=PH.FINALQ_RES;room._advanceAt=Date.now()+10000;
+  const correct=room.players.filter(p=>room.finalAnswers[p.id]?.correct).map(p=>p.name);
+  sysMsg(room,`🔍 Correct: ${correct.join(', ')||'nobody'}.`);await saveRoom(room);
+}
+async function submitBet(bet){
+  if(myBet!==null)return;myBet=bet;
+  const room=await loadRoom(RC);if(!room)return;
+  room.rouletteBets[ME.id]={bet,name:ME.name};
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.rouletteBets).length>=alive.length)await resolveRoulette(room);
+  else await saveRoom(room);render();
+}
+async function resolveRoulette(room){
+  const results={};
+  room.players.filter(p=>p.alive).forEach(p=>{
+    const bet=room.rouletteBets[p.id]?.bet||1;const win=Math.random()>0.5;
+    results[p.id]={name:p.name,bet,win};
+    if(!win){const died=loseLife(p,bet);if(died&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);}
+    else if(p.lostSuits?.length>0)p.lostSuits.pop();
+  });
+  room.rouletteResults=results;room.phase=PH.ROULETTE_RES;room._advanceAt=Date.now()+10000;
+  sysMsg(room,'🎰 The wheel spoke.');await saveRoom(room);
+}
+async function submitCup(choice){
+  if(myCupChoice)return;myCupChoice=choice;
+  const room=await loadRoom(RC);if(!room)return;
+  const alive=room.players.filter(p=>p.alive);
+  const turnP=alive[(room.cupTurn||0)%alive.length];
+  if(turnP?.id!==ME.id){myCupChoice=null;return;}
+  const me=room.players.find(p=>p.id===ME.id);
+  if(choice==='pass'){if(me){loseLife(me);if(livesLeft(me)===0)room.eliminated.push(ME.id);}sysMsg(room,`🍷 ${ME.name} passes — loses 1 life.`);}
+  else{
+    const pc=room.cupRound||1;const roll=Math.floor(Math.random()*6)+1;const poi=roll<=pc;
+    room.cupDrunk[ME.id]=true;
+    if(poi){if(me){loseLife(me,4);room.eliminated.push(ME.id);}sysMsg(room,`☠ ${ME.name} drank the poison — ELIMINATED!`);pendingDeath=ME.name;}
+    else sysMsg(room,`🍷 ${ME.name} drinks... safe (rolled ${roll}).`);
+  }
+  room.cupTurn=(room.cupTurn||0)+1;
+  if(room.cupTurn%alive.length===0){
+    room.cupRound=(room.cupRound||1)+1;
+    if(room.cupRound>3){room.players.filter(p=>p.alive).forEach(p=>{loseLife(p,2);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});sysMsg(room,'🃏 Everyone passed 3 times — all lose 2 lives.');room.phase=PH.LS_RES;room._advanceAt=Date.now()+9000;}
+  }
+  const stillAlive=room.players.filter(p=>p.alive);
+  if(stillAlive.length<=1&&room.phase!==PH.LS_RES){room.phase=PH.LS_RES;room._advanceAt=Date.now()+9000;}
+  await saveRoom(room);myCupChoice=null;render();
+}
+async function submitExec(tid){
+  if(myExecNom)return;myExecNom=tid;
+  const room=await loadRoom(RC);if(!room)return;
+  room.execNoms[ME.id]=tid;
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.execNoms).length>=alive.length)await resolveExec(room);
+  else await saveRoom(room);render();
+}
+async function resolveExec(room){
+  const tally={};Object.values(room.execNoms).forEach(id=>{tally[id]=(tally[id]||0)+1;});
+  const alive=room.players.filter(p=>p.alive);
+  const max=Math.max(...Object.values(tally));
+  const tied=Object.keys(tally).filter(id=>tally[id]===max);
+  const executed=[];
+  tied.forEach(id=>{const p=room.players.find(p=>p.id===id);if(p){p.alive=false;p.lostSuits=SUITS;if(!room.eliminated.includes(id))room.eliminated.push(id);executed.push(p.name);}});
+  room.execResult={executed,tally};
+  const remaining=room.players.filter(p=>p.alive);
+  if(remaining.length<=1){room.winner=remaining[0]?.id||null;room.championName=remaining[0]?.name||'???';}
+  room.phase=PH.EXEC_RES;
+  sysMsg(room,`☠ Executed: ${executed.join(', ')}`);
+  aiB(room.code,`The Execution. ${executed.join(', ')} eliminated.`,room.tier);
+  await saveRoom(room);
+}
+
+// ═══ DEADLINE CHECKS ═══════════════════════════════════════════════════
+async function checkConf(room){
+  if(room.phase!==PH.CONFESS||!room.confDeadline||Date.now()<room.confDeadline)return;
+  if(aiLock.conf)return;aiLock.conf=true;
+  room.players.filter(p=>p.alive).forEach(p=>{if(!room.confessions[p.id]){loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);}});
+  const texts=Object.values(room.confessions).join(' ').split(' ');
+  room.clue1=texts[Math.floor(texts.length/2)]?.replace(/[^a-zA-Z]/g,'').toUpperCase()||'EXIT';
+  room.phase=PH.CONFESS_REV;room._advanceAt=Date.now()+12000;
+  sysMsg(room,'📜 Confessions revealed.');
+  aiB(room.code,'Confessions revealed.',room.tier);
+  await saveRoom(room);delete aiLock.conf;
+}
+async function checkScale(room){
+  if(room.phase!==PH.SCALE||!room.scaleDeadline||Date.now()<room.scaleDeadline)return;
+  if(aiLock.scale)return;aiLock.scale=true;
+  const alive=room.players.filter(p=>p.alive);
+  alive.forEach(p=>{if(!room.scaleChoices[p.id])room.scaleChoices[p.id]=Math.random()>0.5?'A':'B';});
+  const ac=Object.values(room.scaleChoices).filter(v=>v==='A').length;
+  const bc=Object.values(room.scaleChoices).filter(v=>v==='B').length;
+  const min=ac===bc?'both':ac<bc?'A':'B';
+  const q=room.scaleQ;
+  room.scaleResult={aCount:ac,bCount:bc,minority:min,clueWord:q?.clue};
+  room.clue2=q?.clue||'SHADOW';
+  if(min==='both')alive.forEach(p=>{loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});
+  else alive.filter(p=>room.scaleChoices[p.id]===min).forEach(p=>{loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});
+  room.phase=PH.SCALE_REV;room._advanceAt=Date.now()+10000;
+  sysMsg(room,`⚖ Scale done. ${min==='both'?'Tie':min+' was minority'}.`);
+  await saveRoom(room);delete aiLock.scale;
+}
+async function checkMirror(room){
+  if(room.phase!==PH.MIRROR||!room.mirrorDeadline||Date.now()<room.mirrorDeadline)return;
+  if(aiLock.mirror)return;aiLock.mirror=true;
+  const alive=room.players.filter(p=>p.alive);
+  alive.forEach(p=>{if(!room.mirrorAccusations[p.id]){const o=alive.filter(x=>x.id!==p.id);room.mirrorAccusations[p.id]=o[Math.floor(Math.random()*o.length)]?.id||p.id;}});
+  await resolveMirror(room);delete aiLock.mirror;
+}
+async function checkSpeed(room){
+  if(room.phase!==PH.SPEED||!room.speedDeadline||Date.now()<room.speedDeadline)return;
+  if(aiLock.speed)return;aiLock.speed=true;
+  await resolveSpeedRound(room);delete aiLock.speed;
+}
+async function checkChain(room){
+  if(room.phase!==PH.CHAIN||!room.chainDeadline||Date.now()<room.chainDeadline)return;
+  if(aiLock.chain)return;aiLock.chain=true;
+  const alive=room.players.filter(p=>p.alive);
+  const turnP=alive[(room.chainTurn||0)%alive.length];
+  if(turnP){loseLife(turnP);if(livesLeft(turnP)===0&&!room.eliminated.includes(turnP.id))room.eliminated.push(turnP.id);sysMsg(room,`⏱ ${turnP.name} timed out.`);}
+  room.chainTurn=(room.chainTurn||0)+1;room.chainDeadline=Date.now()+15000;
+  const total=alive.length*3;
+  if(room.chainTurn>=total){room.phase=PH.CHAIN_RES;room._advanceAt=Date.now()+8000;}
+  await saveRoom(room);delete aiLock.chain;
+}
+async function checkTribunal(room){
+  if(room.phase!==PH.TRIBUNAL||!room.tribunalDeadline||Date.now()<room.tribunalDeadline)return;
+  if(aiLock.trib)return;aiLock.trib=true;
+  room.players.filter(p=>p.alive&&!room.tribunalSpeeches[p.id]).forEach(p=>{loseLife(p,2);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);sysMsg(room,`⚖ ${p.name} no defense — loses 2 lives.`);});
+  // if enough speeches, go to vote
+  const alive=room.players.filter(p=>p.alive);
+  if(Object.keys(room.tribunalSpeeches).length>=alive.length)await resolveTribunal(room);
+  else{room._tribVoteDeadline=Date.now()+30000;await saveRoom(room);}
+  delete aiLock.trib;
+}
+async function checkCipher(room){
+  if(room.phase!==PH.CIPHER||!room.cipherDeadline||Date.now()<room.cipherDeadline)return;
+  if(aiLock.cipher)return;aiLock.cipher=true;
+  const alive=room.players.filter(p=>p.alive);
+  alive.filter(p=>!room.cipherAnswers[p.id]?.correct).forEach(p=>{loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});
+  await resolveCipher(room);delete aiLock.cipher;
+}
+async function checkImpostor(room){
+  if(room.phase!==PH.IMPOSTOR||!room.impostorDeadline||Date.now()<room.impostorDeadline)return;
+  if(aiLock.imp)return;aiLock.imp=true;
+  room.players.filter(p=>p.alive&&room.impostorAnswers[p.id]===undefined).forEach(p=>{room.impostorAnswers[p.id]={choice:-1,correct:false,name:p.name};});
+  await resolveImpostor(room);delete aiLock.imp;
+}
+async function checkFinalQ(room){
+  if(room.phase!==PH.FINALQ||!room.finalDeadline||Date.now()<room.finalDeadline)return;
+  if(aiLock.finalq)return;aiLock.finalq=true;
+  room.players.filter(p=>p.alive&&!room.finalAnswers[p.id]).forEach(p=>{room.finalAnswers[p.id]={answer:'',correct:false,name:p.name};loseLife(p);if(livesLeft(p)===0&&!room.eliminated.includes(p.id))room.eliminated.push(p.id);});
+  await resolveFinalQ(room);delete aiLock.finalq;
+}
+async function checkRoulette(room){
+  if(room.phase!==PH.ROULETTE||!room.rouletteStart||Date.now()-room.rouletteStart<20000)return;
+  if(aiLock.roul)return;aiLock.roul=true;
+  room.players.filter(p=>p.alive&&!room.rouletteBets[p.id]).forEach(p=>{room.rouletteBets[p.id]={bet:1,name:p.name};});
+  await resolveRoulette(room);delete aiLock.roul;
+}
+async function checkExec(room){
+  if(room.phase!==PH.EXECUTION||!room.execDeadline||Date.now()<room.execDeadline)return;
+  if(aiLock.exec)return;aiLock.exec=true;
+  room.players.filter(p=>p.alive&&!room.execNoms[p.id]).forEach(p=>{room.execNoms[p.id]=p.id;});
+  await resolveExec(room);delete aiLock.exec;
+}
+
+// ═══ ADVANCE ═══════════════════════════════════════════════════════════
+async function advanceFromResult(room){
+  if(!RESULT_PH.includes(room.phase)||!room._advanceAt||Date.now()<room._advanceAt)return;
+  if(aiLock.adv)return;aiLock.adv=true;
+  const alive=room.players.filter(p=>p.alive);
+  if(alive.length<=1){room.phase=PH.ADVANCING;room.winner=alive[0]?.id;room.championName=alive[0]?.name;await saveRoom(room);delete aiLock.adv;return;}
+  room.currentGameIdx=(room.currentGameIdx||0)+1;
+  const games=TGAMES[room.tier]||[];const next=games[room.currentGameIdx];
+  if(!next){room.phase=PH.ADVANCING;await saveRoom(room);delete aiLock.adv;return;}
+  room.phase=PH.RULES;room._rulesFor=next;room._rulesCountdown=Date.now()+8000;
+  delete room._advanceAt;await saveRoom(room);delete aiLock.adv;
+}
+async function advanceWinners(room){
+  if(room.phase!==PH.ADVANCING)return;
+  if(aiLock.advancing)return;aiLock.advancing=true;
+  const nt=NTIER[room.tier];
+  if(!nt){
+    const champ=room.players.find(p=>p.alive)||room.players[0];
+    room.phase=PH.ENDED;room.winner='champion';room.championName=champ?.name||'???';
+    try{await fbS('blv5/global/champion',{name:champ?.name||'???',at:Date.now(),room:room.code});}catch{}
+    await saveRoom(room);delete aiLock.advancing;return;
+  }
+  let nr=await findAdvancing(nt);
+  if(!nr){const nc=rc5();nr=mkRoom(nc,nt,null);nr.players=[];}
+  const survivors=room.players.filter(p=>p.alive);
+  survivors.forEach(p=>{if(!nr.players.find(np=>np.id===p.id)){const np=mkPlayer(p.id,p.name);np.lostSuits=p.lostSuits||[];if(np.lostSuits.length>0)np.lostSuits.pop();nr.players.push(np);}});
+  sysMsg(nr,`${TICO[nt]||''} ${survivors.map(p=>p.name).join(', ')} arrived from ${TLBL[room.tier]}.`);
+  await saveRoom(nr);room._nextRoomCode=nr.code;room.phase=PH.ENDED;await saveRoom(room);delete aiLock.advancing;
+}
+
+// ═══ POLLING ═══════════════════════════════════════════════════════════
+function startPoll(){stopPoll();pollTimer=setInterval(doPoll,POLL_MS);}
+function stopPoll(){if(pollTimer)clearInterval(pollTimer);}
+
+async function doPoll(){
+  const room=await loadRoom(RC);if(!room)return;
+  if(ROOM){
+    if(room.eliminated.length>ROOM.eliminated.length){const nd=room.eliminated[room.eliminated.length-1];const dp=room.players.find(p=>p.id===nd);if(dp)pendingDeath=dp.name;}
+    room.players.forEach(p=>{const prev=ROOM.players.find(rp=>rp.id===p.id);if(prev&&(p.lostSuits?.length||0)>(prev.lostSuits?.length||0)&&p.alive)pendingHurt=p.name;});
+  }
+  ROOM=room;
+  await checkRules(room);await checkConf(room);await checkScale(room);await checkMirror(room);
+  await checkSpeed(room);await checkChain(room);await checkTribunal(room);await checkCipher(room);
+  await checkImpostor(room);await checkFinalQ(room);await checkRoulette(room);await checkExec(room);
+  await advanceFromResult(room);await advanceWinners(room);
+  if(!champShown){try{const gc=await fbG('blv5/global/champion');if(gc?.name&&Date.now()-gc.at<6000)showChamp(gc.name);}catch{}}
+  if(room._nextRoomCode&&room.players.find(p=>p.id===ME.id)?.alive){
+    const nrc=room._nextRoomCode;stopPoll();RC=nrc;ROOM=null;resetState();
+    const nr=await loadRoom(nrc);if(nr){ROOM=nr;render();startPoll();}return;
+  }
+  render();
+  if(pendingDeath||pendingHurt)setTimeout(()=>{pendingDeath=null;pendingHurt=null;render();},2200);
+  if(room.phase===PH.ENDED&&!room._nextRoomCode)stopPoll();
+}
+async function sendChat(text){
+  if(!text.trim())return;const room=await loadRoom(RC);if(!room)return;
+  const me=room.players.find(p=>p.id===ME.id);if(!me?.alive)return;
+  room.messages.push({type:'chat',authorId:ME.id,authorName:ME.name,text:text.trim(),ts:Date.now()});await saveRoom(room);
+}
+
+// ═══ AUDIO ═════════════════════════════════════════════════════════════
+let _ac=null;function ga(){if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();return _ac;}
+function playDeath(){try{const c=ga(),t=c.currentTime;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(18,t+1.6);g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+1.6);o.start(t);o.stop(t+1.6);const b=c.createBuffer(1,c.sampleRate*.5,c.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length)*.1;const s=c.createBufferSource();s.buffer=b;const fg=c.createGain();fg.gain.value=.18;s.connect(fg);fg.connect(c.destination);s.start(t);}catch{}}
+function playHurt(){try{const c=ga(),t=c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.value=440;g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.35);}catch{}}
+function playChamp(){try{const c=ga(),t=c.currentTime;[[130,1],[196,.9],[261,.8],[392,.7],[523,.5]].forEach(([f,v],i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.18);g.gain.linearRampToValueAtTime(v*.11,t+i*.18+.1);g.gain.exponentialRampToValueAtTime(.001,t+i*.18+2);o.connect(g);g.connect(c.destination);o.start(t+i*.18);o.stop(t+i*.18+2.2);});}catch{}}
+function showChamp(name){if(champShown)return;champShown=true;const o=document.getElementById('champOverlay');const n=document.getElementById('coName');if(!o||!n)return;n.textContent=name;o.classList.add('show');playChamp();setTimeout(()=>o.classList.remove('show'),4500);}
+
+// ═══ TIMER ════════════════════════════════════════════════════════════
+function startTimer(dl,max,tc){
+  if(timerIv)clearInterval(timerIv);
+  timerLeft=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  timerIv=setInterval(()=>{
+    timerLeft=Math.max(0,Math.ceil((dl-Date.now())/1000));
+    const f=document.getElementById('tFill');const s=document.getElementById('tSec');const b=document.getElementById('tBig');
+    if(f){f.style.width=(timerLeft/max*100)+'%';f.className='tw-fill '+tc;}
+    if(s)s.textContent=timerLeft+'s';if(b)b.textContent=timerLeft;
+    if(timerLeft<=0)clearInterval(timerIv);
+  },500);
+}
+
+// ═══ RENDER ════════════════════════════════════════════════════════════
+function tc(tier){return{base:'tb',queen:'tq',king:'tk',joker:'tj'}[tier]||'tb';}
+function tBtn(tier){return{base:'bred',queen:'bqueen',king:'bking',joker:'bjoker'}[tier]||'bred';}
+function tBox(tier){return{queen:'qbox',king:'kbox',joker:'jbox'}[tier]||'';}
+function tTag(tier){return{base:'tb-tag',queen:'tq-tag',king:'tk-tag',joker:'tj-tag'}[tier]||'tb-tag';}
+
+function render(){
+  const room=ROOM;const ph=room?.phase;const tier=room?.tier||TIER.B;
+  document.body.className=tc(tier);
+  let html='';
+  if(!ME.name||!ph||ph===PH.LOBBY)html=rLobby(room);
+  else if(ph===PH.RULES)html=rRules(room);
+  else if(ph===PH.ADVANCING)html=rAdvancing(room);
+  else if(ph===PH.ENDED)html=rEnd(room);
+  else html=rGame(room);
+  document.getElementById('app').innerHTML=rHdr(tier,room)+html;
+  bindAll();
+  const cb=document.getElementById('chatBox');if(cb)cb.scrollTop=cb.scrollHeight;
+  if(pendingDeath){document.querySelectorAll('.bn').forEach(el=>{if(el.dataset.n===pendingDeath){el.classList.add('dying');playDeath();}});}
+  if(pendingHurt){document.querySelectorAll('.bn').forEach(el=>{if(el.dataset.n===pendingHurt){el.classList.add('hurt');playHurt();}});}
+}
+
+function rHdr(tier,room){
+  const labels={base:'THE <em>BORDER</em>LANDS',queen:"<small>♛</small> QUEEN'S <em>CHAMBER</em>",king:"<small>♚</small> KING'S <em>CHAMBER</em>",joker:"<small>🃏</small> <em>JOKER'S</em> KEEP"};
+  return`<div class="hdr"><div class="hdr-pre">Survival · Endurance · ${TLBL[tier]||''}</div><div class="hdr-title">${labels[tier]||labels.base}</div><div class="hdr-suits"><span class="r">♥</span><span class="r">♦</span><span>♠</span><span>♣</span></div>${RC?`<div class="room-tag">ROOM <b>${RC}</b></div>`:''}</div>`;
+}
+function rBoard(room){
+  if(!room?.players?.length)return'';
+  const names=room.players.map(p=>{const dead=!p.alive,isMe=p.id===ME.id,dying=pendingDeath===p.name&&dead,hurt=pendingHurt===p.name&&p.alive;return`<span class="bn${isMe?' me':''}${dead&&!dying?' dead':''}${dying?' dying':''}${hurt?' hurt':''}" data-n="${esc(p.name)}">${esc(p.name)}</span>`;}).join('');
+  return`<div class="board"><div class="label">Participants</div><div class="bnames">${names}</div></div>`;
+}
+function rLivesBar(room){
+  const me=room?.players?.find(p=>p.id===ME.id);if(!me)return'';
+  return`<div class="lives-bar fi"><span class="lives-lbl">Lives</span>${livesHTML(me)}<span class="lives-count">${livesLeft(me)}/4</span></div>`;
+}
+function rNarr(room){
+  if(!room?.narration||room.narration==='...')return'';
+  const t=tc(room.tier);
+  return`<div class="narr ${t} fi"><div class="narr-lbl">◈ ${TLBL[room.tier]||''}</div><div class="prose">${esc(room.narration).split('\n').map(l=>`<p>${l}</p>`).join('')}</div></div>`;
+}
+function rClues(room){
+  const c=[room.clue1,room.clue2,room.clue3];if(!c.some(Boolean))return'';
+  return`<div class="clue-tracker fi"><div class="ct-lbl">◈ Clues Collected</div><div class="ct-chips">${c.map((cl,i)=>`<span class="ct-chip ${cl?'rev':'hid'}">${cl||`Clue ${i+1}: ???`}</span>`).join('')}</div></div>`;
+}
+function rChat(room){
+  const msgs=(room?.messages||[]).slice(-60);
+  const me=room?.players?.find(p=>p.id===ME.id);const spec=me&&!me.alive;
+  return`<div class="box"><div class="label">◈ Communications${spec?' <span class="err">— SPECTATOR</span>':''}</div><div class="chat-box" id="chatBox">${msgs.map(m=>m.type==='sys'?`<div><span class="cm-s cm-who">◈</span><span class="cm-txt">${esc(m.text)}</span></div>`:`<div><span class="${m.authorId===ME.id?'cm-me':'cm-o'} cm-who">${esc(m.authorName)}</span><span class="cm-txt">${esc(m.text)}</span></div>`).join('')}</div>${spec?`<div style="padding:7px 11px;background:var(--dark);border:1px solid var(--brd);font-size:11px;color:var(--muted)">👁 ELIMINATED — SILENT OBSERVER</div>`:`<div class="row"><input class="inp" id="chatInp" placeholder="Say something..." maxlength="160" style="font-size:12px;padding:8px 10px"/><button class="btn" id="chatSend" style="padding:8px 13px;font-size:12px">SEND</button></div>`}</div>`;
+}
+function rLobby(room){
+  const count=room?.players?.length||0;
+  if(!room){
+    // Phase 1: No room yet — full atmospheric intro
+    return`
+<div class="lobby-wrap">
+
+  <!-- ATMOSPHERIC LAYER — fades in slowly -->
+  <div class="lobby-atmo fi">
+    <div class="lobby-flicker-text">SURVIVAL · DEDUCTION · THE BORDERLANDS</div>
+    <div class="lobby-suits-big">
+      <span class="ls ls1">♣</span>
+      <span class="ls ls2">♦</span>
+      <span class="ls ls3">♥</span>
+      <span class="ls ls4">♠</span>
+    </div>
+  </div>
+
+  <!-- BRUTAL MIDDLE — stark wake-up text -->
+  <div class="lobby-brutal fi">
+    <div class="lobby-line l1">You wake in a cold room.</div>
+    <div class="lobby-line l2">The door is already locked.</div>
+    <div class="lobby-line l3">Somewhere, others are waking too.</div>
+    <div class="lobby-divider">
+      <span></span><span class="ld-dot">◈</span><span></span>
+    </div>
+    <div class="lobby-rules-strip">
+      <div class="lrs-item"><span class="lrs-icon">♣♦♥♠</span><span class="lrs-text">Four lives. Lose them all and you are gone.</span></div>
+      <div class="lrs-item"><span class="lrs-icon">⚔</span><span class="lrs-text">Every game costs lives. Wrong answers bleed.</span></div>
+      <div class="lrs-item"><span class="lrs-icon">♛</span><span class="lrs-text">Survive and advance. Base → Queen → King → Joker.</span></div>
+      <div class="lrs-item"><span class="lrs-icon">☠</span><span class="lrs-text">Last one standing becomes Champion.</span></div>
+    </div>
+  </div>
+
+  <!-- DRAMATIC ENTRY — the door -->
+  <div class="lobby-door fi">
+    <div class="door-frame">
+      <div class="door-corner dc-tl"></div>
+      <div class="door-corner dc-tr"></div>
+      <div class="door-corner dc-bl"></div>
+      <div class="door-corner dc-br"></div>
+      <div class="door-inner">
+        <div class="label" style="margin-bottom:10px">IDENTIFY YOURSELF</div>
+        <input class="inp" id="nameInp" placeholder="Your name..." maxlength="14" autocomplete="off"/>
+        <input class="inp mt" id="codeInp" placeholder="Room code — leave blank to auto-join..." maxlength="5" style="text-transform:uppercase;letter-spacing:.2em" autocomplete="off"/>
+        <button class="btn lobby-enter-btn" id="joinBtn">
+          <span class="leb-text">ENTER THE BORDERLANDS</span>
+          <span class="leb-arrow">→</span>
+        </button>
+        <div class="err" id="joinErr" style="display:none;margin-top:6px;font-size:11px;text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>`;
+  }
+
+  // Phase 2: In a room — waiting lobby
+  const filledSlots = room.players.map((p,i)=>`
+    <div class="cell-card ${p.id===ME.id?'me':''}">
+      <div class="cell-num">PLAYER ${i+1}</div>
+      <div class="cell-name">${esc(p.name)}${p.id===ME.id?'<span class="cell-you"> YOU</span>':''}</div>
+      <div class="cell-suits">
+        <span class="cs cs-club">♣</span>
+        <span class="cs cs-dia">♦</span>
+        <span class="cs cs-heart">♥</span>
+        <span class="cs cs-spade">♠</span>
+      </div>
+    </div>`).join('');
+  const emptySlots = Array.from({length:MAX_P-count},(_,i)=>`
+    <div class="cell-card empty">
+      <div class="cell-num">PLAYER ${count+i+1}</div>
+      <div class="cell-name empty-name">——</div>
+      <div class="cell-suits dim">♣ ♦ ♥ ♠</div>
+    </div>`).join('');
+
+  return`
+<div class="lobby-room-wrap fi">
+
+  <!-- ROOM CODE — big dramatic display -->
+  <div class="room-display">
+    <div class="rd-label">SHARE THIS CODE</div>
+    <div class="rd-code">${esc(room.code)}</div>
+    <div class="rd-sub">${count}/${MAX_P} participants · ${count<MIN_P?`<span class="err">Waiting for ${MIN_P-count} more</span>`:'<span class="ok">Ready to begin</span>'}</div>
+  </div>
+
+  <!-- CELL GRID — player dossiers -->
+  <div class="cell-grid">
+    ${filledSlots}${emptySlots}
+  </div>
+
+  <!-- STATUS LINE -->
+  <div class="room-status">
+    <div class="rs-bar">
+      <div class="rs-fill" style="width:${count/MAX_P*100}%"></div>
+    </div>
+    <div class="rs-text">${count<MIN_P?`Need ${MIN_P-count} more player${MIN_P-count>1?'s':''} to start`:'All players ready — start when you are'}</div>
+  </div>
+
+  ${count>=MIN_P?`
+  <button class="btn lobby-start-btn" id="startBtn">
+    <span>⚡ START THE GAME</span>
+  </button>`:''}
+
+  ${rChat(room)}
+
+</div>`;
+}
+function rRules(room){
+  const rk=room._rulesFor;const rd=RULES_DATA[rk];if(!rd)return`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Loading...</span></div>`;
+  const left=room._rulesCountdown?Math.max(0,Math.ceil((room._rulesCountdown-Date.now())/1000)):8;
+  if(!timerIv||timerLeft<=0)startTimer(room._rulesCountdown||Date.now()+8000,8,rd.tc);
+  const tcol={tb:'var(--red)',tq:'var(--queen)',tk:'var(--king)',tj:'var(--joker)'}[rd.tc]||'var(--red)';
+  return`<div class="rules-card"><div class="rules-inner fi"><div class="ri-icon">${rd.icon}</div><div class="ri-title" style="color:${tcol}">${rd.title}</div><div class="ri-sub">${rd.sub}</div><div class="ri-body"><div class="ri-inst">${rd.inst}</div>${rd.rules.map(r=>`<div class="ri-rule">· ${r}</div>`).join('')}</div><div class="ri-count" style="color:${tcol}" id="tSec">${left}</div><div class="ri-skip" id="skipRules">TAP TO SKIP →</div></div></div>`;
+}
+function rGame(room){
+  const ph=room.phase,tier=room.tier,t=tc(tier);
+  const me=room.players.find(p=>p.id===ME.id);const isAlive=me?.alive;
+  const alive=room.players.filter(p=>p.alive);
+  const GNUM={[PH.CONFESS]:'01',[PH.CONFESS_REV]:'01',[PH.SCALE]:'02',[PH.SCALE_REV]:'02',[PH.MASQ]:'03',[PH.MASQ_REV]:'03',[PH.MIRROR]:'01',[PH.MIRROR_REV]:'01',[PH.SPEED]:'02',[PH.SPEED_RES]:'02',[PH.CHAIN]:'03',[PH.CHAIN_RES]:'03',[PH.TRIBUNAL]:'01',[PH.TRIBUNAL_RES]:'01',[PH.CIPHER]:'02',[PH.CIPHER_RES]:'02',[PH.IMPOSTOR]:'03',[PH.IMPOSTOR_RES]:'03',[PH.FINALQ]:'04',[PH.FINALQ_RES]:'04',[PH.ROULETTE]:'01',[PH.ROULETTE_RES]:'01',[PH.LASTSUPPER]:'02',[PH.LS_RES]:'02',[PH.EXECUTION]:'03',[PH.EXEC_RES]:'03'};
+  const GNAME={[PH.CONFESS]:'CONFESSION WALL',[PH.CONFESS_REV]:'CONFESSIONS',[PH.SCALE]:'THE SCALE',[PH.SCALE_REV]:'SCALE RESULT',[PH.MASQ]:'THE MASQUERADE',[PH.MASQ_REV]:'MASKS OFF',[PH.MIRROR]:'THE MIRROR',[PH.MIRROR_REV]:'MIRROR',[PH.SPEED]:'SPEED ROUND',[PH.SPEED_RES]:'SPEED DONE',[PH.CHAIN]:'CHAIN REACTION',[PH.CHAIN_RES]:'CHAIN DONE',[PH.TRIBUNAL]:'THE TRIBUNAL',[PH.TRIBUNAL_RES]:'VERDICT',[PH.CIPHER]:'THE CIPHER',[PH.CIPHER_RES]:'CIPHER',[PH.IMPOSTOR]:'IMPOSTOR Q',[PH.IMPOSTOR_RES]:'LIE REVEALED',[PH.FINALQ]:'FINAL QUESTION',[PH.FINALQ_RES]:'FINAL RESULTS',[PH.ROULETTE]:'ROULETTE',[PH.ROULETTE_RES]:'WHEEL SPOKE',[PH.LASTSUPPER]:'LAST SUPPER',[PH.LS_RES]:'CUP EMPTY',[PH.EXECUTION]:'THE EXECUTION',[PH.EXEC_RES]:'EXECUTED'};
+  const tierBanner=tier==='queen'?`<div class="tier-banner tq">♛ You survived the first trial. The Queen is watching. ♛</div>`:tier==='king'?`<div class="tier-banner tk">♚ Few reach this chamber. The King does not tolerate failure. ♚</div>`:tier==='joker'?`<div class="tier-banner tj">🃏 This is the end. The Joker has no rules. 🃏</div>`:'';
+  const strip=`<div class="strip"><div class="sc"><div class="sc-l">You</div><div class="sc-v g">${esc(ME.name)}</div></div><div class="sc"><div class="sc-l">Chamber</div><div class="sc-v ${t}">${TLBL[tier]||''}</div></div><div class="sc"><div class="sc-l">Alive</div><div class="sc-v ${alive.length<=2?'r':'g'}">${alive.length}</div></div><div class="sc"><div class="sc-l">Status</div><div class="sc-v ${isAlive?'g':'r'}">${isAlive?'ALIVE':'SPEC'}</div></div></div>`;
+  const phdr=`<div class="phdr fi"><div class="phdr-num ${t}">${GNUM[ph]||'?'}</div><div style="flex:1"><div class="phdr-name">${GNAME[ph]||'...'}</div><div class="phdr-sub">${alive.length} remaining · ${TLBL[tier]}</div></div><div class="phdr-chip ${t}">${TICO[tier]||'◈'}</div></div>`;
+  let main='';
+  if(ph===PH.CONFESS||ph===PH.CONFESS_REV)main=rConfess(room,me);
+  else if(ph===PH.SCALE||ph===PH.SCALE_REV)main=rScale(room,me);
+  else if(ph===PH.MASQ||ph===PH.MASQ_REV)main=rMasq(room,me);
+  else if(ph===PH.MIRROR||ph===PH.MIRROR_REV)main=rMirror(room,me);
+  else if(ph===PH.SPEED||ph===PH.SPEED_RES)main=rSpeed(room,me);
+  else if(ph===PH.CHAIN||ph===PH.CHAIN_RES)main=rChain(room,me);
+  else if(ph===PH.TRIBUNAL||ph===PH.TRIBUNAL_RES)main=rTribunal(room,me);
+  else if(ph===PH.CIPHER||ph===PH.CIPHER_RES)main=rCipher(room,me);
+  else if(ph===PH.IMPOSTOR||ph===PH.IMPOSTOR_RES)main=rImpostor(room,me);
+  else if(ph===PH.FINALQ||ph===PH.FINALQ_RES)main=rFinalQ(room,me);
+  else if(ph===PH.ROULETTE||ph===PH.ROULETTE_RES)main=rRoulette(room,me);
+  else if(ph===PH.LASTSUPPER||ph===PH.LS_RES)main=rLastSupper(room,me);
+  else if(ph===PH.EXECUTION||ph===PH.EXEC_RES)main=rExecution(room,me);
+  return`<div class="fi">${tierBanner}${rBoard(room)}${rLivesBar(room)}${!isAlive?'<div class="spec-banner">👁 ELIMINATED — SPECTATOR MODE</div>':''}${strip}${phdr}${rNarr(room)}${rClues(room)}${main}${rChat(room)}</div>`;
+}
+
+// ── CONFESS ──────────────────────────────────────────────────────────
+function rConfess(room,me){
+  const t=tc(room.tier);
+  if(room.phase===PH.CONFESS_REV){
+    return`<div class="box ${tBox(room.tier)} fi"><div class="btag ${tTag(room.tier)}">📜 CONFESSIONS</div><div style="margin-top:8px"><div class="prose mb"><p>Read carefully. A clue word is hidden in one of these confessions.</p></div>${room.players.filter(p=>p.alive).map(p=>`<div class="conf-item"><div class="conf-auth">${esc(p.name)}${p.id===ME.id?' (YOU)':''}</div><div class="conf-text${!room.confessions[p.id]?' blank':''}">${esc(room.confessions[p.id]||'— said nothing —')}</div></div>`).join('')}</div></div>`;
+  }
+  const dl=room.confDeadline||Date.now()+90000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,90,t);
+  const locked=confLocked||room.confessions[ME.id]!=null;
+  if(!me?.alive)return`<div class="box fi"><div class="btag ${tTag(room.tier)}">🕯 CONFESSION WALL</div><div style="margin-top:8px"><div class="prose"><p>Players writing confessions. Spectating.</p></div></div></div>`;
+  return`<div class="box ${tBox(room.tier)} fi"><div class="btag ${tTag(room.tier)}">🕯 CONFESSION WALL</div><div style="margin-top:8px"><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill ${t}" id="tFill" style="width:${left/90*100}%"></div></div></div>${locked?`<div style="padding:10px 12px;background:var(--dark);border:1px solid var(--brd2);margin-top:7px"><div class="label">LOCKED IN</div><div class="conf-text">${esc(room.confessions[ME.id]||myConf||'...')}</div></div>`:`<textarea class="inp" id="confInp" placeholder="Write your confession..." maxlength="200" style="margin-top:7px">${esc(myConf)}</textarea><button class="btn ${tBtn(room.tier)} mt" id="confBtn">LOCK IN</button>`}<div class="small mt">${Object.keys(room.confessions||{}).length}/${room.players.filter(p=>p.alive).length} submitted</div></div></div>`;
+}
+
+// ── SCALE ────────────────────────────────────────────────────────────
+function rScale(room,me){
+  const q=room.scaleQ;
+  if(room.phase===PH.SCALE_REV){
+    const res=room.scaleResult||{};
+    return`<div class="box fi"><div class="btag ${tTag(room.tier)}">⚖ THE SCALE — RESULT</div><div style="margin-top:8px"><div class="prose mb"><p>${esc(q?.q)}</p></div><div class="scale-opts"><div class="scale-opt${res.minority==='A'||res.minority==='both'?' minority':''}"><div class="so-lbl">${esc(q?.a)}</div><div class="so-sub">${res.aCount} votes${res.minority==='A'?' ← MINORITY':res.minority==='both'?' ← TIE':''}</div></div><div class="scale-opt${res.minority==='B'||res.minority==='both'?' minority':''}"><div class="so-lbl">${esc(q?.b)}</div><div class="so-sub">${res.bCount} votes${res.minority==='B'?' ← MINORITY':res.minority==='both'?' ← TIE':''}</div></div></div><div class="small mt">Clue word: <span style="color:var(--gold)">${esc(res.clueWord||'???')}</span></div></div></div>`;
+  }
+  const dl=room.scaleDeadline||Date.now()+30000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,30,tc(room.tier));
+  if(!me?.alive)return`<div class="box fi"><div class="btag ${tTag(room.tier)}">⚖ THE SCALE</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  if(!q)return`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Loading...</span></div>`;
+  return`<div class="box fi"><div class="btag ${tTag(room.tier)}">⚖ THE SCALE</div><div style="margin-top:8px"><div class="prose mb"><p><em>${esc(q.q)}</em></p></div><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill ${tc(room.tier)}" id="tFill" style="width:${left/30*100}%"></div></div></div>${myScale?`<div style="padding:9px;border:1px solid var(--teal);text-align:center;margin-top:8px"><span style="color:var(--teal);font-family:'Bebas Neue',cursive;font-size:17px">YOU CHOSE: ${myScale==='A'?esc(q.a):esc(q.b)}</span></div>`:`<div class="scale-opts" style="margin-top:9px"><div class="scale-opt" id="scaleA"><div class="so-lbl">${esc(q.a)}</div><div class="so-sub">Tap to choose</div></div><div class="scale-opt" id="scaleB"><div class="so-lbl">${esc(q.b)}</div><div class="so-sub">Tap to choose</div></div></div>`}</div></div>`;
+}
+
+// ── MASQUERADE ────────────────────────────────────────────────────────
+function rMasq(room,me){
+  const myRole=room.masqRoles?.[ME.id];const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.MASQ_REV){
+    const res=room.masqResult||{};
+    return`<div class="box qbox fi"><div class="btag tq-tag">🎭 MASKS OFF</div><div style="margin-top:8px"><div style="text-align:center;padding:14px 0"><div style="font-family:'Bebas Neue',cursive;font-size:38px;color:var(--queen)">${esc(res.victimName||'?')}</div><div class="small mt">Most accused · ${res.lied?'WAS BLUFFING — loses 2 lives':'TOLD THE TRUTH — accusers penalized'}</div></div>${Object.entries(res.tally||{}).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{const p=room.players.find(p=>p.id===id);return`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--brd)"><span style="font-family:'Bebas Neue',cursive;font-size:13px;min-width:65px">${esc(p?.name)}</span><div style="flex:1;height:2px;background:var(--brd2)"><div style="width:${n/alive.length*100}%;height:100%;background:var(--queen)"></div></div><span class="small">${n}</span></div>`;}).join('')}</div></div>`;
+  }
+  const hasClaims=Object.keys(room.masqClaims||{}).length>=alive.length;
+  if(!me?.alive)return`<div class="box qbox fi"><div class="btag tq-tag">🎭 MASQUERADE</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="fi">${myRole?`<div class="my-role fi"><div class="my-role-icon">${esc(myRole.icon)}</div><div class="my-role-name">${esc(myRole.role)}</div><div class="my-role-desc">"${esc(myRole.desc)}"</div><div class="small mt">YOUR ROLE — LIE OR TELL THE TRUTH</div></div>`:''}<div class="box qbox fi"><div class="btag tq-tag">🎭 ${hasClaims?'VOTE — WHO IS BLUFFING?':'CLAIM YOUR ROLE IN CHAT'}</div><div style="margin-top:8px">${!hasClaims?`${masqClaimSent?`<div style="padding:9px;border:1px solid var(--teal);text-align:center"><span class="ok">CLAIM SENT</span></div>`:`<div class="row"><input class="inp" id="masqInp" placeholder="Claim your role..." maxlength="100"/><button class="btn bqueen" id="masqSendBtn">SEND</button></div>`}<div class="label mt">Claims so far</div>${Object.entries(room.masqClaims||{}).map(([id,c])=>`<div class="conf-item"><div class="conf-auth">${esc(c.name)}</div><div class="conf-text">"${esc(c.text)}"</div></div>`).join('')}<div class="small mt">${Object.keys(room.masqClaims||{}).length}/${alive.length} claimed</div>`:`${myMasqVote?`<div style="padding:9px;border:1px solid var(--teal);text-align:center"><span class="ok">VOTE LOCKED</span></div>`:`<div class="prose mb"><p>All claims in. Who is bluffing?</p></div><div class="pgrid">${alive.filter(p=>p.id!==ME.id).map(p=>`<div class="pc click" data-masqvote="${p.id}"><div class="pc-n">${esc(p.name)}</div><div class="small" style="margin-top:2px">"${esc((room.masqClaims[p.id]?.text||'...').slice(0,28))}"</div></div>`).join('')}</div>`}<div class="small mt">${Object.keys(room.masqVotes||{}).length}/${alive.length} voted</div>`}</div></div></div>`;
+}
+
+// ── MIRROR ────────────────────────────────────────────────────────────
+function rMirror(room,me){
+  const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.MIRROR_REV){
+    const res=room.mirrorResult||{};
+    return`<div class="box qbox fi"><div class="btag tq-tag">🪞 MIRROR REVEALED</div><div style="margin-top:8px"><div style="text-align:center;padding:14px 0"><div style="font-family:'Bebas Neue',cursive;font-size:38px;color:var(--queen)">${esc(res.topName||'?')}</div><div class="small mt">Accused ${res.count} times · ${res.toldTruth?'TOLD TRUTH — accusers lose 1 life':'LIED — loses 1 life'}</div><div style="font-size:11px;color:var(--gold);margin-top:5px">Clue digit: <b>${res.count}</b></div></div></div></div>`;
+  }
+  const dl=room.mirrorDeadline||Date.now()+45000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,45,'tq');
+  if(!me?.alive)return`<div class="box qbox fi"><div class="btag tq-tag">🪞 THE MIRROR</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="box qbox fi"><div class="btag tq-tag">🪞 THE MIRROR</div><div style="margin-top:8px"><div class="prose mb"><p>Who lied in their confession? Most accused loses a life.</p></div><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill tq" id="tFill" style="width:${left/45*100}%"></div></div></div>${myMirror?`<div style="padding:9px;border:1px solid var(--queen);text-align:center;margin-top:7px"><span style="color:var(--queen);font-family:'Bebas Neue',cursive;font-size:16px">ACCUSED: ${esc(alive.find(p=>p.id===myMirror)?.name||'?')}</span></div>`:`<div class="pgrid mt">${alive.filter(p=>p.id!==ME.id).map(p=>`<div class="pc click" data-mirror="${p.id}"><div class="pc-i">ACCUSE</div><div class="pc-n">${esc(p.name)}</div><div class="pc-lv">${pcLivesHTML(p)}</div></div>`).join('')}</div>`}<div class="small mt">${Object.keys(room.mirrorAccusations||{}).length}/${alive.length} accused</div></div></div>`;
+}
+
+// ── SPEED ─────────────────────────────────────────────────────────────
+function rSpeed(room,me){
+  if(room.phase===PH.SPEED_RES){return`<div class="box qbox fi"><div class="btag tq-tag">⏱ SPEED ROUND DONE</div><div style="margin-top:8px"><div class="prose"><p>All 5 questions complete. Clue from Q3: <span class="hl">${esc(room.speedQuestions?.[2]?.a||'???')}</span></p></div></div></div>`;}
+  const qi=room.speedRound||0;const q=room.speedQuestions?.[qi];
+  const dl=room.speedDeadline||Date.now()+10000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,10,'tq');
+  if(!me?.alive)return`<div class="box qbox fi"><div class="btag tq-tag">⏱ SPEED ROUND</div><div style="margin-top:8px"><div class="prose"><p>Q${qi+1}/5. Spectating.</p></div></div></div>`;
+  return`<div class="box qbox fi"><div class="btag tq-tag">⏱ SPEED ROUND</div><div style="margin-top:8px"><div class="speed-q"><div class="speed-qn">QUESTION ${qi+1} OF 5${qi===2?' · 🔑 CLUE IN ANSWER':''}</div><div class="speed-qt">${esc(q?.q||'Loading...')}</div></div><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec" class="err">${left}s</span></div><div class="tw-bg"><div class="tw-fill tq" id="tFill" style="width:${left/10*100}%"></div></div></div>${speedAnswered?`<div style="padding:9px;border:1px solid var(--teal);text-align:center"><span class="ok">ANSWERED</span></div>`:`<div class="row mt"><input class="inp" id="speedInp" placeholder="Answer..." maxlength="60"/><button class="btn bqueen" id="speedBtn">SUBMIT</button></div>`}<div class="small mt">${Object.keys(room.speedAnswers||{}).length}/${room.players.filter(p=>p.alive).length} answered</div></div></div>`;
+}
+
+// ── CHAIN ─────────────────────────────────────────────────────────────
+function rChain(room,me){
+  if(room.phase===PH.CHAIN_RES){return`<div class="box qbox fi"><div class="btag tq-tag">🔄 CHAIN COMPLETE</div><div style="margin-top:8px"><div class="chain-disp">${(room.chainWords||[]).map((w,i,a)=>`<span class="cw${w.isClue?' clue':''}">${esc(w.word)}</span>${i<a.length-1?'<span class="carr">→</span>':''}`).join('')}</div><div class="small mt">Clue words (3rd each): ${(room.chainWords||[]).filter(w=>w.isClue).map(w=>`<span style="color:var(--gold)">${esc(w.word)}</span>`).join(', ')||'none'}</div></div></div>`;}
+  const alive=room.players.filter(p=>p.alive);
+  const turnP=alive[(room.chainTurn||0)%alive.length];const isMyTurn=turnP?.id===ME.id;
+  const dl=room.chainDeadline||Date.now()+15000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,15,'tq');
+  const lastWord=(room.chainWords||[]).slice(-1)[0]?.word||'...';
+  const total=alive.length*3;
+  if(!me?.alive)return`<div class="box qbox fi"><div class="btag tq-tag">🔄 CHAIN REACTION</div><div style="margin-top:8px"><div class="prose"><p>Spectating. Turn ${room.chainTurn||0}/${total}.</p></div></div></div>`;
+  return`<div class="box qbox fi"><div class="btag tq-tag">🔄 CHAIN REACTION</div><div style="margin-top:8px"><div class="chain-disp">${(room.chainWords||[]).slice(-6).map((w,i,a)=>`<span class="cw${w.isClue?' clue':''}">${esc(w.word)}</span>${i<a.length-1?'<span class="carr">→</span>':''}`).join('')}</div><div class="tw mt"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill tq" id="tFill" style="width:${left/15*100}%"></div></div></div><div style="text-align:center;padding:9px 0"><div class="small mb">CURRENT TURN</div><div style="font-family:'Bebas Neue',cursive;font-size:22px;color:${isMyTurn?'var(--teal)':'var(--muted)'}">${isMyTurn?'YOUR TURN':esc(turnP?.name||'?')}</div><div class="small mt">Last word: <b>${esc(lastWord)}</b> · Turn ${room.chainTurn||0}/${total}</div></div>${isMyTurn&&!chainSent?`<div class="row"><input class="inp" id="chainInp" placeholder="Next word..." maxlength="30"/><button class="btn bqueen" id="chainBtn">→</button></div>`:isMyTurn&&chainSent?`<div style="padding:7px;text-align:center"><span class="ok">SENT</span></div>`:''}</div></div>`;
+}
+
+// ── TRIBUNAL ──────────────────────────────────────────────────────────
+function rTribunal(room,me){
+  const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.TRIBUNAL_RES){
+    const res=room.tribunalResult||{};
+    return`<div class="box kbox fi"><div class="btag tk-tag">⚖ VERDICT</div><div style="margin-top:8px"><div style="text-align:center;padding:14px 0"><div style="font-family:'Bebas Neue',cursive;font-size:38px;color:var(--king)">${esc(res.topName||'?')}</div><div class="small mt">Found most suspicious — loses 1 life</div></div>${Object.entries(res.tally||{}).sort((a,b)=>b[1]-a[1]).map(([id,n])=>{const p=room.players.find(p=>p.id===id);return`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--brd)"><span style="font-family:'Bebas Neue',cursive;font-size:13px;min-width:65px">${esc(p?.name)}</span><div style="flex:1;height:2px;background:var(--brd2)"><div style="width:${n/alive.length*100}%;height:100%;background:var(--king)"></div></div><span class="small">${n}</span></div>`;}).join('')}</div></div>`;
+  }
+  const tribData=room.tribunalData||{};const allSpeeches=Object.keys(room.tribunalSpeeches||{}).length>=alive.length;
+  if(!me?.alive)return`<div class="box kbox fi"><div class="btag tk-tag">⚖ TRIBUNAL</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="box kbox fi"><div class="btag tk-tag">⚖ THE TRIBUNAL</div><div style="margin-top:8px">${!allSpeeches?`<div class="trib-item" style="margin-bottom:9px"><div style="font-size:9px;letter-spacing:.3em;color:var(--king);margin-bottom:3px">YOUR ACCUSATION</div><div class="prose" style="font-style:italic;font-size:13px">"${esc(tribData[ME.id]?.accusation||'Loading...')}"</div></div>${tribSpeechSent?`<div style="padding:9px;border:1px solid var(--teal);text-align:center"><span class="ok">DEFENSE SUBMITTED</span></div>`:`<textarea class="inp" id="tribunalInp" placeholder="Write your defense..." maxlength="200"></textarea><button class="btn bking mt" id="tribunalBtn">SUBMIT</button>`}<div class="small mt">${Object.keys(room.tribunalSpeeches||{}).length}/${alive.length} submitted</div>`:`<div class="prose mb"><p>All defenses in. Vote the most suspicious.</p></div>${alive.map(p=>`<div class="trib-item"><div class="trib-name">${esc(p.name)}${p.id===ME.id?' (YOU)':''}</div><div class="trib-acc">"${esc(tribData[p.id]?.accusation||'')}"</div><div class="trib-def">${esc(room.tribunalSpeeches[p.id]?.text||'— said nothing —')}</div></div>`).join('')}${myTribVote?`<div style="padding:9px;border:1px solid var(--king);text-align:center;margin-top:8px"><span style="color:var(--king);font-family:'Bebas Neue',cursive">VOTED</span></div>`:`<div class="pgrid mt">${alive.filter(p=>p.id!==ME.id).map(p=>`<div class="pc click" data-trib="${p.id}"><div class="pc-n">${esc(p.name)}</div></div>`).join('')}</div>`}<div class="small mt">${Object.keys(room.tribunalVotes||{}).length}/${alive.length} voted</div>`}</div></div>`;
+}
+
+// ── CIPHER ────────────────────────────────────────────────────────────
+function rCipher(room,me){
+  const cd=room.cipherData;const winner=room.cipherWinner?room.players.find(p=>p.id===room.cipherWinner):null;
+  if(room.phase===PH.CIPHER_RES){return`<div class="box kbox fi"><div class="btag tk-tag">🔐 CIPHER DONE</div><div style="margin-top:8px">${winner?`<div style="padding:11px;border:1px solid var(--king);background:rgba(58,123,213,.07);text-align:center"><div class="small mb" style="color:var(--king)">FIRST SOLVED — GAINED 1 LIFE</div><div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--king)">${esc(winner.name)}</div></div>`:''}<div class="small mt">Answer: <span style="color:var(--king)">${esc(cd?.answer||'???')}</span> — this is your clue</div></div></div>`;}
+  const dl=room.cipherDeadline||Date.now()+90000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,90,'tk');
+  if(!me?.alive)return`<div class="box kbox fi"><div class="btag tk-tag">🔐 CIPHER</div><div style="margin-top:8px"><div class="prose"><p>${winner?`${esc(winner.name)} solved it!`:'Race in progress.'}</p></div></div></div>`;
+  return`<div class="box kbox fi"><div class="btag tk-tag">🔐 THE CIPHER</div><div style="margin-top:8px"><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill tk" id="tFill" style="width:${left/90*100}%"></div></div></div>${!cd?`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Loading...</span></div>`:winner?`<div style="padding:11px;border:1px solid var(--king);background:rgba(58,123,213,.07);text-align:center;margin-top:8px"><div style="font-family:'Bebas Neue',cursive;font-size:20px;color:var(--king)">${esc(winner.name)} SOLVED IT</div></div>`:`<div class="cipher-code mt">${esc(cd.encoded)}</div><div class="small mb" style="color:var(--muted)">${esc(cd.method)} · Hint: ${esc(cd.hint)}</div>${myCipherSolved?`<div style="padding:8px;border:1px solid var(--teal);text-align:center"><span class="ok">✓ YOU SOLVED IT</span></div>`:myCipherAttempts>=3?`<div style="padding:8px;border:1px solid var(--dimred);text-align:center"><span class="err">3 ATTEMPTS USED</span></div>`:`<div class="row"><input class="inp" id="cipherInp" placeholder="Answer..." style="text-transform:uppercase"/><button class="btn bking" id="cipherBtn">SUBMIT</button></div><div class="small mt">${myCipherAttempts}/3 attempts</div>`}`}</div></div>`;
+}
+
+// ── IMPOSTOR ──────────────────────────────────────────────────────────
+function rImpostor(room,me){
+  const id=room.impostorData;
+  if(room.phase===PH.IMPOSTOR_RES){
+    const fi=id?.falseIdx??-1;
+    return`<div class="box kbox fi"><div class="btag tk-tag">🕵 LIE REVEALED</div><div style="margin-top:8px"><div class="prose mb"><p>Statement ${fi+1} was the lie. Clue word: <span class="hl">${esc(id?.clueWord||'?')}</span></p></div>${(id?.statements||[]).map((s,i)=>`<div class="imp-stmt${i===fi?' wrong':' correct'}"><span class="imp-num">${i+1}.</span><span class="imp-text">${esc(s)}</span>${i===fi?'<span class="small err" style="display:block;margin-top:3px">← THE LIE</span>':''}</div>`).join('')}<div class="label mt">Answers</div>${room.players.filter(p=>p.alive).map(p=>{const a=room.impostorAnswers?.[p.id];return`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--brd)"><span style="font-family:'Bebas Neue',cursive;font-size:13px;min-width:65px;color:${p.id===ME.id?'var(--teal)':'var(--cream)'}">${esc(p.name)}</span><span style="font-size:11px;color:${a?.correct?'var(--teal)':'var(--red)'}">${a?.correct?'✓ CORRECT':'✗ WRONG'}</span></div>`;}).join('')}</div></div>`;
+  }
+  const dl=room.impostorDeadline||Date.now()+45000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,45,'tk');
+  if(!me?.alive)return`<div class="box kbox fi"><div class="btag tk-tag">🕵 IMPOSTOR Q</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="box kbox fi"><div class="btag tk-tag">🕵 THE IMPOSTOR QUESTION</div><div style="margin-top:8px"><div class="prose mb"><p>One of these statements is false. Find it.</p></div><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec">${left}s</span></div><div class="tw-bg"><div class="tw-fill tk" id="tFill" style="width:${left/45*100}%"></div></div></div>${!id?`<div class="ld"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div><span>Loading...</span></div>`:(id.statements||[]).map((s,i)=>`<div class="imp-stmt${myImpChoice===i?' chosen':''}" data-imp="${i}" style="${myImpChoice!==null&&myImpChoice!==i?'opacity:.4;pointer-events:none':'cursor:pointer'}"><span class="imp-num">${i+1}.</span><span class="imp-text">${esc(s)}</span></div>`).join('')}<div class="small mt">${Object.keys(room.impostorAnswers||{}).length}/${room.players.filter(p=>p.alive).length} answered</div></div></div>`;
+}
+
+// ── FINAL Q ───────────────────────────────────────────────────────────
+function rFinalQ(room,me){
+  const fq=room.finalQData;
+  if(room.phase===PH.FINALQ_RES){return`<div class="box fi"><div class="btag tg-tag">🔍 FINAL RESULTS</div><div style="margin-top:8px"><div class="prose mb"><p>Answer: <span class="hl">${esc(fq?.answer||'???')}</span></p></div>${room.players.filter(p=>p.alive||(room.finalAnswers||{})[p.id]).map(p=>{const a=(room.finalAnswers||{})[p.id];return`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--brd)"><span style="font-family:'Bebas Neue',cursive;font-size:13px;min-width:65px;color:${p.id===ME.id?'var(--teal)':'var(--cream)'}">${esc(p.name)}</span><span style="font-size:11px;color:${a?.correct?'var(--teal)':'var(--red)'}">${a?`${a.correct?'✓':'✗'} ${esc(a.answer||'—')}`:'—'}</span></div>`;}).join('')}</div></div>`;}
+  const dl=room.finalDeadline||Date.now()+60000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,60,tc(room.tier));
+  if(!me?.alive)return`<div class="box fi"><div class="btag tg-tag">🔍 FINAL QUESTION</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="box fi"><div class="btag tg-tag">🔍 THE FINAL QUESTION</div><div style="margin-top:8px"><div style="background:var(--dark);border:2px solid var(--gold);padding:16px;text-align:center;margin-bottom:10px"><div class="label">YOUR CLUES</div><div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:8px 0">${[room.clue1,room.clue2,room.clue3].map(c=>`<span style="background:var(--surf);border:1px solid var(--dimgold);padding:3px 10px;font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:.1em;color:${c?'var(--gold)':'var(--muted)'}">${esc(c||'???')}</span>`).join('')}</div><div class="prose" style="text-align:left;font-size:13px"><p>${esc(fq?.question||'Assemble the three clue words into a phrase.')}</p></div></div><div class="tw"><div class="tw-top"><span>TIME</span><span id="tSec" class="err">${left}s</span></div><div class="tw-bg"><div class="tw-fill ${tc(room.tier)}" id="tFill" style="width:${left/60*100}%"></div></div></div>${finalSent?`<div style="padding:9px;border:1px solid var(--teal);text-align:center;margin-top:7px"><span class="ok">SUBMITTED: ${esc(myFinalAns)}</span></div>`:`<div class="row mt"><input class="inp" id="finalInp" placeholder="Your answer..." maxlength="100"/><button class="btn bgold" id="finalBtn">SUBMIT</button></div>`}<div class="small mt">${Object.keys(room.finalAnswers||{}).length}/${room.players.filter(p=>p.alive).length} answered</div></div></div>`;
+}
+
+// ── ROULETTE ──────────────────────────────────────────────────────────
+function rRoulette(room,me){
+  const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.ROULETTE_RES){const res=room.rouletteResults||{};return`<div class="box jbox fi"><div class="btag tj-tag">🎰 WHEEL SPOKE</div><div style="margin-top:8px">${alive.map(p=>{const r=res[p.id];return r?`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd)"><span style="font-family:'Bebas Neue',cursive;font-size:15px;min-width:65px;color:${p.id===ME.id?'var(--teal)':'var(--cream)'}">${esc(p.name)}</span><span class="small" style="color:var(--muted)">bet ${r.bet}</span><span style="margin-left:auto;font-family:'Bebas Neue',cursive;font-size:15px;color:${r.win?'var(--teal)':'var(--red)'}">${r.win?'SURVIVED':'LOST'}</span></div>`:''}).join('')}</div></div>`;}
+  const myLives=livesLeft(room.players.find(p=>p.id===ME.id)||{lostSuits:SUITS});
+  if(!me?.alive)return`<div class="box jbox fi"><div class="btag tj-tag">🎰 ROULETTE</div><div style="margin-top:8px"><div class="prose"><p>Spectating. ${Object.keys(room.rouletteBets||{}).length}/${alive.length} have bet.</p></div></div></div>`;
+  return`<div class="box jbox fi"><div class="btag tj-tag">🎰 RUSSIAN ROULETTE</div><div style="margin-top:8px"><div class="prose mb"><p>Bet your lives. The Joker flips a coin. <span class="err">20 seconds.</span></p></div>${myBet!==null?`<div style="padding:11px;border:1px solid var(--joker);text-align:center"><span style="font-family:'Bebas Neue',cursive;font-size:18px;color:var(--joker)">BET: ${myBet} LIFE${myBet>1?'S':''}</span></div>`:`<div class="rchips"><div class="rchip c1" data-bet="1"><div style="font-size:20px">1</div><div style="font-size:8px;letter-spacing:.1em">LIFE</div></div>${myLives>=2?`<div class="rchip c2" data-bet="2"><div style="font-size:20px">2</div><div style="font-size:8px;letter-spacing:.1em">LIVES</div></div>`:''} ${myLives>=3?`<div class="rchip c3" data-bet="3"><div style="font-size:20px">3</div><div style="font-size:8px;letter-spacing:.1em">LIVES</div></div>`:''} ${myLives>=4?`<div class="rchip ca" data-bet="4"><div style="font-size:18px">ALL</div><div style="font-size:8px;letter-spacing:.1em">IN</div></div>`:''}</div>`}<div class="small mt">${Object.keys(room.rouletteBets||{}).length}/${alive.length} have bet</div></div></div>`;
+}
+
+// ── LAST SUPPER ───────────────────────────────────────────────────────
+function rLastSupper(room,me){
+  const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.LS_RES){return`<div class="box jbox fi"><div class="btag tj-tag">🍷 CUP EMPTY</div><div style="margin-top:8px"><div class="prose"><p>The Last Supper ends. ${alive.length} remain.</p></div></div></div>`;}
+  const turnP=alive[(room.cupTurn||0)%alive.length];const isMyTurn=turnP?.id===ME.id;const pc=room.cupRound||1;
+  if(!me?.alive)return`<div class="box jbox fi"><div class="btag tj-tag">🍷 LAST SUPPER</div><div style="margin-top:8px"><div class="prose"><p>Round ${pc}/3. Spectating.</p></div></div></div>`;
+  return`<div class="box jbox fi"><div class="btag tj-tag">🍷 THE LAST SUPPER — ROUND ${pc}/3</div><div style="margin-top:8px"><div class="cup-anim">🍷</div><div class="cup-turn"><div class="small mb">CURRENT TURN</div><div class="cup-who">${isMyTurn?'YOUR TURN':esc(turnP?.name||'?')}</div><div class="small mt">Poison: ${pc}/6 chance · Pass = lose 1 life</div></div>${isMyTurn&&!myCupChoice?`<div style="display:flex;gap:9px;justify-content:center;margin-top:10px"><button class="btn bjoker" id="cupDrink">🍷 DRINK</button><button class="btn bred" id="cupPass">PASS (−1 life)</button></div>`:isMyTurn&&myCupChoice?`<div style="padding:8px;text-align:center"><span class="ok">CHOICE MADE</span></div>`:''}<div class="small mt">Turn ${room.cupTurn||0} of ${alive.length*3}</div></div></div>`;
+}
+
+// ── EXECUTION ─────────────────────────────────────────────────────────
+function rExecution(room,me){
+  const alive=room.players.filter(p=>p.alive);
+  if(room.phase===PH.EXEC_RES){const res=room.execResult||{};return`<div class="box jbox fi"><div class="btag tj-tag">☠ EXECUTED</div><div style="margin-top:8px"><div style="text-align:center;padding:16px 0">${(res.executed||[]).map(n=>`<div style="font-family:'Bebas Neue',cursive;font-size:40px;color:var(--joker);text-decoration:line-through;text-decoration-color:var(--red)">${esc(n)}</div>`).join('')}<div class="small mt">ELIMINATED</div></div></div></div>`;}
+  const dl=room.execDeadline||Date.now()+60000;const left=Math.max(0,Math.ceil((dl-Date.now())/1000));
+  if(!timerIv||timerLeft<=0)startTimer(dl,60,'tj');
+  if(!me?.alive)return`<div class="box jbox fi"><div class="btag tj-tag">☠ EXECUTION</div><div style="margin-top:8px"><div class="prose"><p>Spectating.</p></div></div></div>`;
+  return`<div class="exec-box fi"><div style="font-family:'Bebas Neue',cursive;font-size:26px;color:var(--joker);letter-spacing:.15em;margin-bottom:5px">☠ THE EXECUTION</div><div class="small mb">One does not leave.</div><div class="tw" style="margin:10px 0"><div class="tw-top"><span>TIME</span><span id="tSec" class="err">${left}s</span></div><div class="tw-bg"><div class="tw-fill tj" id="tFill" style="width:${left/60*100}%"></div></div></div>${myExecNom?`<div style="padding:9px;border:1px solid var(--joker);text-align:center;margin:7px 0"><span style="color:var(--joker);font-family:'Bebas Neue',cursive;font-size:16px">NOMINATED: ${esc(alive.find(p=>p.id===myExecNom)?.name||'?')}</span></div>`:`<div class="pgrid">${alive.filter(p=>p.id!==ME.id).map(p=>`<div class="pc click" data-exec="${p.id}"><div class="pc-n">${esc(p.name)}</div><div class="pc-lv">${pcLivesHTML(p)}</div></div>`).join('')}</div>`}<div class="small mt">${Object.keys(room.execNoms||{}).length}/${alive.length} nominated</div></div>`;
+}
+
+// ── ADVANCING ─────────────────────────────────────────────────────────
+function rAdvancing(room){
+  const nt=NTIER[room.tier];const me=room.players.find(p=>p.id===ME.id);
+  const cfgs={queen:{icon:'♛',title:'ADVANCING',color:'var(--queen)',flavor:"The games clear. The door opens — not to the street. The Queen's Chamber waits."},king:{icon:'♚',title:'ADVANCING',color:'var(--king)',flavor:"You survived the Queen. The King's Chamber is colder. You earned the right."},joker:{icon:'🃏',title:'FINAL TRIAL',color:'var(--joker)',flavor:"The King has been satisfied. One room remains. The Joker has no rules."},base:{icon:'◈',title:'SURVIVED',color:'var(--teal)',flavor:'The Borderlands are cleared.'}};
+  const cfg=cfgs[nt||'base'];
+  return`<div class="adv-screen fi"><div class="adv-icon" style="color:${cfg.color}">${cfg.icon}</div><div class="adv-title" style="color:${cfg.color}">${cfg.title}</div><div class="adv-flavor">${cfg.flavor}</div>${me?.alive?`<div class="small pulse" style="color:var(--muted)">Transferring you secretly...</div><div class="ld" style="justify-content:center;margin-top:9px"><div class="ldd"></div><div class="ldd"></div><div class="ldd"></div></div>`:`<div class="err" style="font-size:13px">You have been eliminated. Survivors advance.</div>`}</div>`;
+}
+
+// ── END ───────────────────────────────────────────────────────────────
+function rEnd(room){
+  const me=room.players.find(p=>p.id===ME.id);const isChamp=room.winner==='champion';const isWinner=me?.alive;
+  const survivors=room.players.filter(p=>p.alive).map(p=>p.name).join(', ')||'—';
+  let title,sub,flavor,win;
+  if(isChamp&&isWinner){win=true;title='CHAMPION';sub='The last survivor';flavor='Every room. Every game. Every life bet and lost. You survived them all. The Joker\'s door opens to silence — then to daylight. You are the last one standing.';}
+  else if(isWinner){win=true;title='SURVIVED';sub=TLBL[room.tier];flavor='You made it through. The survivors advance. Your story continues in the next chamber.';}
+  else{win=false;title='ELIMINATED';sub='All lives lost';flavor='The games did not spare you. Your name is struck from the board.';}
+  return`<div class="adv-screen fi">${rBoard(room)}${rLivesBar(room)}<div class="end-title ${win?'win':'lose'} mt">${title}</div><div class="small" style="letter-spacing:.5em;color:var(--muted);margin:9px 0 18px;text-transform:uppercase">${sub} · ${TLBL[room.tier]} · ${esc(RC)}</div><div class="adv-flavor">${flavor}</div><div class="small mb">Survivors: ${esc(survivors)}</div><button class="btn bred" id="restartBtn">PLAY AGAIN</button></div>`;
+}
+
+// ═══ BIND ══════════════════════════════════════════════════════════════
+function bindAll(){
+  const q=id=>document.getElementById(id);
+  const on=(id,fn)=>{const el=q(id);if(el)el.onclick=fn;};
+  const onK=(id,fn)=>{const el=q(id);if(el)el.onkeydown=e=>{if(e.key==='Enter')fn();};};
+  const doJoin=()=>joinGame(q('nameInp')?.value||'',q('codeInp')?.value||'');
+  on('joinBtn',doJoin);onK('nameInp',doJoin);
+  on('startBtn',()=>startGame(RC));
+  on('skipRules',async()=>{const r=await loadRoom(RC);if(!r||r.phase!==PH.RULES)return;r._rulesCountdown=Date.now()-1;await saveRoom(r);});
+  on('confBtn',()=>submitConf(q('confInp')?.value||''));
+  on('scaleA',()=>submitScale('A'));on('scaleB',()=>submitScale('B'));
+  on('masqSendBtn',()=>submitMasqClaim(q('masqInp')?.value||''));onK('masqInp',()=>submitMasqClaim(q('masqInp')?.value||''));
+  document.querySelectorAll('[data-masqvote]').forEach(el=>{el.onclick=()=>submitMasqVote(el.dataset.masqvote);});
+  document.querySelectorAll('[data-mirror]').forEach(el=>{el.onclick=()=>submitMirror(el.dataset.mirror);});
+  on('speedBtn',()=>submitSpeed(q('speedInp')?.value||''));onK('speedInp',()=>submitSpeed(q('speedInp')?.value||''));
+  on('chainBtn',()=>{submitChain(q('chainInp')?.value||'');if(q('chainInp'))q('chainInp').value='';});onK('chainInp',()=>{submitChain(q('chainInp')?.value||'');if(q('chainInp'))q('chainInp').value='';});
+  on('tribunalBtn',()=>submitTribSpeech(q('tribunalInp')?.value||''));
+  document.querySelectorAll('[data-trib]').forEach(el=>{el.onclick=()=>submitTribVote(el.dataset.trib);});
+  on('cipherBtn',()=>submitCipher(q('cipherInp')?.value||''));onK('cipherInp',()=>submitCipher(q('cipherInp')?.value||''));
+  document.querySelectorAll('[data-imp]').forEach(el=>{el.onclick=()=>submitImpostor(parseInt(el.dataset.imp));});
+  on('finalBtn',()=>submitFinalQ(q('finalInp')?.value||''));onK('finalInp',()=>submitFinalQ(q('finalInp')?.value||''));
+  document.querySelectorAll('[data-bet]').forEach(el=>{el.onclick=()=>submitBet(parseInt(el.dataset.bet));});
+  on('cupDrink',()=>submitCup('drink'));on('cupPass',()=>submitCup('pass'));
+  document.querySelectorAll('[data-exec]').forEach(el=>{el.onclick=()=>submitExecNom(el.dataset.exec);});
+  const doSend=async()=>{const ci=q('chatInp');if(!ci?.value.trim())return;const txt=ci.value;ci.value='';await sendChat(txt);const r=await loadRoom(RC);if(r){ROOM=r;render();}};
+  on('chatSend',doSend);onK('chatInp',doSend);
+  on('restartBtn',()=>{stopPoll();if(timerIv)clearInterval(timerIv);ME.name='';RC='';ROOM=null;champShown=false;aiLock={};resetState();Object.assign(ME,{id:uid()});render();});
+}
+
+// ═══ INIT ══════════════════════════════════════════════════════════════
+window.addEventListener('load',()=>render());
+</script>
+</body>
+</html>
